@@ -8,9 +8,9 @@ pipeline {
             steps {
                 // Checkout the main repository
                 checkout([
-                    //$class: 'GitSCM', 
-                    //branches: [[name: '*']], 
-                    //userRemoteConfigs: [[url: 'https://github.com/youssefrmili/Ecommerce-APP.git']]
+                    $class: 'GitSCM', 
+                    branches: [[name: '*']], 
+                    userRemoteConfigs: [[url: 'https://github.com/youssefrmili/Ecommerce-APP.git']]
                 ])
             }
         }
