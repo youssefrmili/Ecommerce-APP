@@ -129,7 +129,7 @@ pipeline {
                     // Iterate over each microservice folder
                     for (def service in microservices) {
                         // Scan the Docker image using Trivy
-                        sh "docker run --rm -v /home/youssef/.cache:/root/.cache/ aquasec/trivy image --scanners vuln --timeout 15m youssefrm/${service}:latest > trivy.txt"
+                        sh "docker run --rm -v /home/youssef/.cache:/root/.cache/ aquasec/trivy image --scanners vuln --timeout 30m youssefrm/${service}:latest > trivy.txt"
                     }
                 }
             }
