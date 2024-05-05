@@ -22,7 +22,7 @@ pipeline {
 
         stage('Build') {
             when {
-                expression { !env.BRANCH_NAME.startsWith('feature/') } // Check if branch is not a feature branch
+                expression { env.BRANCH_NAME!=('feature/*') } // Check if branch is not a feature branch
             }
             steps {
                 script {
