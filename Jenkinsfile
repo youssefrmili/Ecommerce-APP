@@ -21,6 +21,8 @@ pipeline {
         }
 
         stage('Build') {
+             when {
+                expression { !env.BRANCH_NAME=='feature/*') }
             steps {
                 script {
                     // Build each microservice using Maven
