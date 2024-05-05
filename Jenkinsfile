@@ -5,8 +5,20 @@ pipeline {
 
     environment {
         DOCKERHUB_USERNAME = "youssefrm"
-        // Define the Docker tag based on branch name
-        DOCKER_TAG = calculateDockerTag(env.BRANCH_NAME)
+        DOCKER_TAG = "" // Initialize the Docker tag
+
+        // Define the Docker tag based on the branch name
+        script {
+            if (env.BRANCH_NAME == 'dev') {
+                DOCKER_TAG = "${DOCKERHUB_USERNAME}/${service}_dev:latest"
+            } else if (env.BRANCH_NAME == 'test') {
+                DOCKER_TAG = "${DOCKERHUB_USERNAME}/${service}_test:latest"
+            } else if (env.BRANCH_NAME == 'master') {
+                DOCKER_TAG = "${DOCKERHUB_USERNAME}/${service}_prod:latest"
+            } else {
+                error("Unsupported branch name: ${env.BRANCH_NAME}")
+            }
+        }
     }
 
     stages {
@@ -55,7 +67,7 @@ pipeline {
                 script {
                     for (def service in microservices) {
                         dir(service) {
-                            sh 'mvn clean install'
+                            sh 'mvn clean install' // Build the microservice
                         }
                     }
                 }
@@ -67,7 +79,7 @@ pipeline {
                 script {
                     for (def service in microservices) {
                         dir(service) {
-                            sh 'mvn test'
+                            sh 'mvn test' // Run tests
                         }
                     }
                 }
@@ -80,7 +92,7 @@ pipeline {
                     for (def service in microservices) {
                         dir(service) {
                             withSonarQubeEnv(credentialsId: 'sonarqube-id') {
-                                sh 'mvn sonar:sonar'
+                                sh 'mvn sonar:sonar' // Execute SAST with SonarQube
                             }
                         }
                     }
@@ -129,19 +141,6 @@ pipeline {
                     }
                 }
             }
-        }
-    }
-
-    // Define a function to calculate the Docker tag based on branch name
-    def calculateDockerTag(branchName) {
-        if (branchName == 'test') {
-            return "${DOCKERHUB_USERNAME}/${service}_test:latest"
-        } else if (branchName == 'master') {
-            return "${DOCKERHUB_USERNAME}/${service}_prod:latest"
-        } else if (branchName == 'dev') {
-            return "${DOCKERHUB_USERNAME}/${service}_dev:latest"
-        } else {
-            error("Unsupported branch name: $branchName")
         }
     }
 }
