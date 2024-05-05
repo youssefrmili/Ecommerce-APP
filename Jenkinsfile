@@ -1,32 +1,19 @@
-def microservices = ['ecomm-cart'] // Add more services as needed
+def microservices = ['ecomm-cart']
 
 pipeline {
     agent any
 
     environment {
         DOCKERHUB_USERNAME = "youssefrm"
-        DOCKER_TAG = "" // Initialize the Docker tag
-
-        // Define the Docker tag based on the branch name
-        script {
-            if (env.BRANCH_NAME == 'dev') {
-                DOCKER_TAG = "${DOCKERHUB_USERNAME}/${service}_dev:latest"
-            } else if (env.BRANCH_NAME == 'test') {
-                DOCKER_TAG = "${DOCKERHUB_USERNAME}/${service}_test:latest"
-            } else if (env.BRANCH_NAME == 'master') {
-                DOCKER_TAG = "${DOCKERHUB_USERNAME}/${service}_prod:latest"
-            } else {
-                error("Unsupported branch name: ${env.BRANCH_NAME}")
-            }
-        }
     }
 
     stages {
         stage('Checkout') {
             steps {
+                // Checkout the repository
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: env.BRANCH_NAME]], // Checkout the current branch
+                    branches: [[name: env.BRANCH_NAME]], // Check out the current branch
                     userRemoteConfigs: [[url: 'https://github.com/youssefrmili/Ecommerce-APP.git']]
                 ])
             }
@@ -37,9 +24,9 @@ pipeline {
                 script {
                     for (def service in microservices) {
                         dir(service) {
-                            sh 'rm -f trufflehog'
+                            sh 'rm -f trufflehog' // Ensure trufflehog file is removed
                             sh 'docker run --rm gesellix/trufflehog --json https://github.com/youssefrmili/Ecommerce-APP.git > trufflehog'
-                            sh 'cat trufflehog'
+                            sh 'cat trufflehog' // Display the results
                         }
                     }
                 }
@@ -51,6 +38,7 @@ pipeline {
                 script {
                     for (def service in microservices) {
                         dir(service) {
+                            // Fetch the script, give execute permissions, and execute
                             sh 'rm -f owasp*'
                             sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check.sh"'
                             sh 'chmod +x owasp-dependency-check.sh'
@@ -116,7 +104,14 @@ pipeline {
                 script {
                     for (def service in microservices) {
                         dir(service) {
-                            sh "docker build -t ${DOCKER_TAG} ."
+                            // Determine the appropriate Docker tag based on branch name
+                            if (env.BRANCH_NAME == 'test') {
+                                sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_test:latest ."
+                            } else if (env.BRANCH_NAME == 'master') {
+                                sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_prod:latest ."
+                            } else if (env.BRANCH_NAME == 'dev') {
+                                sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_dev:latest ."
+                            }
                         }
                     }
                 }
@@ -127,7 +122,13 @@ pipeline {
             steps {
                 script {
                     for (def service in microservices) {
-                        sh "docker run --rm -v /home/youssef/.cache:/root/.cache/ aquasec/trivy image --scanners vuln --timeout 30m ${DOCKER_TAG} > trivy.txt"
+                        // Run Trivy image scan and save output to trivy.txt
+                         if (env.BRANCH_NAME == 'test') {
+                  sh "docker run --rm -v /home/youssef/.cache:/root/.cache/ aquasec/trivy image --scanners vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_test:latest > trivy.txt"
+                        } else if (env.BRANCH_NAME == 'master') {
+                           sh "docker run --rm -v /home/youssef/.cache:/root/.cache/ aquasec/trivy image --scanners vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_prod:latest > trivy.txt"
+                        } else if (env.BRANCH_NAME == 'dev') {
+                sh "docker run --rm -v /home/youssef/.cache:/root/.cache/ aquasec/trivy image --scanners vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_dev:latest > trivy.txt"
                     }
                 }
             }
@@ -137,7 +138,14 @@ pipeline {
             steps {
                 script {
                     for (def service in microservices) {
-                        sh "docker push ${DOCKER_TAG}"
+                        // Push the appropriate Docker image to DockerHub
+                        if (env.BRANCH_NAME == 'test') {
+                            sh "docker push ${DOCKERHUB_USERNAME}/${service}_test:latest"
+                        } else if (env.BRANCH_NAME == 'master') {
+                            sh "docker push ${DOCKERHUB_USERNAME}/${service}_prod:latest"
+                        } else if (env.BRANCH_NAME == 'dev') {
+                            sh "docker push ${DOCKERHUB_USERNAME}/${service}_dev:latest"
+                        }
                     }
                 }
             }
