@@ -1,11 +1,11 @@
-def microservices = ['ecomm-cart']
+def microservices = ['ecomm-cart'] // Declare microservices list
 
 pipeline {
     agent any
 
     environment {
-        DOCKERHUB_USERNAME = "youssefrm"
-        // Ensure Docker credentials are stored securely in Jenkins
+        DOCKERHUB_USERNAME = credentials('dockerhub-username') // Use credentials plugin for secure storage
+        DOCKERHUB_PASSWORD = credentials('dockerhub-password') // Include password for Docker authentication
     }
 
     stages {
@@ -21,8 +21,9 @@ pipeline {
         }
 
         stage('Build') {
-             when {
-                expression { !env.BRANCH_NAME=='feature/*') }
+            when {
+                expression { !env.BRANCH_NAME.startsWith('feature/') } // Check if branch is not a feature branch
+            }
             steps {
                 script {
                     // Build each microservice using Maven
