@@ -80,6 +80,7 @@ pipeline {
                     for (def service in microservices) {
                         dir(service) {
                             withSonarQubeEnv(credentialsId: 'sonarqube-id') {
+                                sh 'docker start sonarqube'
                                 sh 'mvn sonar:sonar' // Execute SAST with SonarQube
                             }
                         }
