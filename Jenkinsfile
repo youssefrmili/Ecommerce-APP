@@ -129,10 +129,9 @@ pipeline {
                     for (def service in microservices) {
                         // Use Trivy to scan the Docker images for vulnerabilities
                         if (env.BRANCH_NAME == 'test') {
-                            sh "docker run --rm -v /home/youssef/.cache:/root/.cache/ aquasec/trivy image --scanners vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_test:latest > trivy.txt"
+                    sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $PWD:/tmp/.cache/ aquasec/trivy image --scanners vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_test:latest > trivy.txt"
                         } else if (env.BRANCH_NAME == 'master') {
-                            sh "docker run --rm -v /home/youssef/.cache:/root/.cache/ aquasec/trivy image --scanners vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_prod:latest > trivy.txt"
-                        } else if (env.BRANCH_NAME == 'dev') {
+ sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $PWD:/tmp/.cache/ aquasec/trivy image --scanners vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_prod:latest > trivy.txt"                        } else if (env.BRANCH_NAME == 'dev') {
                             sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $PWD:/tmp/.cache/ aquasec/trivy image --scanners vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_dev:latest > trivy.txt"
                         }
                     }
