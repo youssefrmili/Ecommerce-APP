@@ -123,7 +123,12 @@ pipeline {
                 script {
                     for (def service in microservices) {
                         // Run Trivy image scan and save output to trivy.txt
-                        sh "docker run --rm -v /home/youssef/.cache:/root/.cache/ aquasec/trivy image --scanners vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_prod:latest > trivy.txt"
+                         if (env.BRANCH_NAME == 'test') {
+                  sh "docker run --rm -v /home/youssef/.cache:/root/.cache/ aquasec/trivy image --scanners vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_test:latest > trivy.txt"
+                        } else if (env.BRANCH_NAME == 'master') {
+                           sh "docker run --rm -v /home/youssef/.cache:/root/.cache/ aquasec/trivy image --scanners vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_prod:latest > trivy.txt"
+                        } else if (env.BRANCH_NAME == 'dev') {
+                sh "docker run --rm -v /home/youssef/.cache:/root/.cache/ aquasec/trivy image --scanners vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_dev:latest > trivy.txt"
                     }
                 }
             }
