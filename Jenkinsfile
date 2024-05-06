@@ -47,6 +47,7 @@ pipeline {
                 script {
                     // Perform OWASP dependency check for each microservice
                     for (def service in microservices) {
+                        def dependency-check-report.xml = "dependency-check-report-${service}.xml"
                         dir(service) {
                             sh 'rm -f owasp-dependency-check.sh'
                             sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check.sh"'
