@@ -31,7 +31,7 @@ pipeline {
                         dir(service) {
                             // Run TruffleHog to check for secrets in the repository
                             sh 'docker run --rm gesellix/trufflehog --json https://github.com/youssefrmili/Ecommerce-APP.git > trufflehog-${service}.json'
-                            sh 'cat trufflehog.json' // Output the results
+                            sh 'cat trufflehog-${service}.json' // Output the results
                         }
                     }
                 }
