@@ -30,8 +30,8 @@ pipeline {
                     for (def service in microservices) {
                         dir(service) {
                             // Run TruffleHog to check for secrets in the repository
-                            sh 'docker run --rm gesellix/trufflehog --json https://github.com/youssefrmili/Ecommerce-APP.git > trufflehog.json '
-                            sh 'cat trufflehog.json ' // Output the results
+                            sh 'docker run --rm gesellix/trufflehog --json https://github.com/youssefrmili/Ecommerce-APP.git > trufflehog.json'
+                            sh 'cat trufflehog.json' // Output the results
                         }
                     }
                 }
@@ -53,6 +53,24 @@ pipeline {
                             sh './owasp-dependency-check.sh'
                             // Display analysis report
                             sh 'cat /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.xml'
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            when {
+                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
+            }
+            steps {
+                script {
+                    // Perform static analysis with SonarQube for each microservice
+                    for (def service in microservices) {
+                        dir(service) {
+                            withSonarQubeEnv(credentialsId: 'sonarqube-id') {
+                                sh 'mvn sonar:sonar'
+                            }
                         }
                     }
                 }
@@ -85,24 +103,6 @@ pipeline {
                     for (def service in microservices) {
                         dir(service) {
                             sh 'mvn test'
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('SonarQube Analysis') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                script {
-                    // Perform static analysis with SonarQube for each microservice
-                    for (def service in microservices) {
-                        dir(service) {
-                            withSonarQubeEnv(credentialsId: 'sonarqube-id') {
-                                sh 'mvn sonar:sonar'
-                            }
                         }
                     }
                 }
