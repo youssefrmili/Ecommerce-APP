@@ -1,3 +1,4 @@
+
 def microservices = ['ecomm-cart']
 
 pipeline {
@@ -59,24 +60,6 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                script {
-                    // Perform static analysis with SonarQube for each microservice
-                    for (def service in microservices) {
-                        dir(service) {
-                            withSonarQubeEnv(credentialsId: 'sonarqube-id') {
-                                sh 'mvn sonar:sonar'
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         stage('Build') {
             when {
                 expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
@@ -103,6 +86,24 @@ pipeline {
                     for (def service in microservices) {
                         dir(service) {
                             sh 'mvn test'
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            when {
+                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
+            }
+            steps {
+                script {
+                    // Perform static analysis with SonarQube for each microservice
+                    for (def service in microservices) {
+                        dir(service) {
+                            withSonarQubeEnv(credentialsId: 'sonarqube-id') {
+                                sh 'mvn sonar:sonar'
+                            }
                         }
                     }
                 }
