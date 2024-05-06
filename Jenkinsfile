@@ -28,11 +28,10 @@ pipeline {
                 script {
                     // Check each microservice for secrets
                     for (def service in microservices) {
-                        def trufflehogReportFile = "trufflehog-${service}.json"
                         dir(service) {
                             // Run TruffleHog to check for secrets in the repository
-                            sh 'docker run --rm gesellix/trufflehog --json https://github.com/youssefrmili/Ecommerce-APP.git > trufflehogReportFile '
-                            sh 'cat trufflehogReportFile ' // Output the results
+                            sh 'docker run --rm gesellix/trufflehog --json https://github.com/youssefrmili/Ecommerce-APP.git > trufflehog.json '
+                            sh 'cat trufflehog.json ' // Output the results
                         }
                     }
                 }
