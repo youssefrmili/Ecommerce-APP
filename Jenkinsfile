@@ -22,7 +22,7 @@ pipeline {
 
         stage('Build') {
             when {
-                expression { env.BRANCH_NAME !=~ /feature\/.*/ } // Fix the when expression syntax
+                expression { ((env.BRANCH_NAME ==dev) ||(env.BRANCH_NAME ==test) (env.BRANCH_NAME ==master))} // Fix the when expression syntax
             }
             steps {
                 script {
