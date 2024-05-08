@@ -174,13 +174,16 @@ pipeline {
             steps {
                 script {
                     // Push each Docker image to Docker Hub based on the branch
-                    for (def service in microservices) {
+                for (def service in microservices) {
                         if (env.BRANCH_NAME == 'test') {
                             sh "docker push ${DOCKERHUB_USERNAME}/${service}_test:latest"
+                            sh "docker rmi ${DOCKERHUB_USERNAME}/${service}_test:latest"
                         } else if (env.BRANCH_NAME == 'master') {
                             sh "docker push ${DOCKERHUB_USERNAME}/${service}_prod:latest"
+                            sh "docker rmi ${DOCKERHUB_USERNAME}/${service}_prod:latest"
                         } else if (env.BRANCH_NAME == 'dev') {
                             sh "docker push ${DOCKERHUB_USERNAME}/${service}_dev:latest"
+                            sh "docker rmi ${DOCKERHUB_USERNAME}/${service}_dev:latest"
                         }
                     }
                 }
