@@ -38,24 +38,26 @@ pipeline {
             }
         }
 
-        stage('Source Composition Analysis') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
+        // Replace the original "Source Composition Analysis" stage with the new "OWASP Dependency-Check Vulnerabilities" stage
+        stage('OWASP Dependency-Check Vulnerabilities') {
             steps {
                 script {
-                    // Perform OWASP dependency check for each microservice
+                    // Perform OWASP Dependency-Check for each microservice
                     for (def service in microservices) {
                         dir(service) {
-                            steps {
-                                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
-                                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-                            }
+                            dependencyCheck additionalArguments: ''' 
+                                        -o './'
+                                        -s './'
+                                        -f 'ALL' 
+                                        --prettyPrint''', odcInstallation: 'DP-Check'
+                            dependencyCheckPublisher pattern: 'dependency-check-report.xml'
                         }
                     }
                 }
             }
         }
+
+        // The remaining stages in your pipeline (Build, Unit Test, SonarQube Analysis, Docker stages, etc.) remain the same
 
         stage('Build') {
             when {
