@@ -1,4 +1,3 @@
-
 def microservices = ['ecomm-cart']
 
 pipeline {
@@ -48,12 +47,10 @@ pipeline {
                     // Perform OWASP dependency check for each microservice
                     for (def service in microservices) {
                         dir(service) {
-                            sh 'rm -f owasp-dependency-check.sh'
-                            sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check.sh"'
-                            sh 'chmod +x owasp-dependency-check.sh'
-                            sh './owasp-dependency-check.sh'
-                            // Display analysis report
-                            sh 'cat /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.xml'
+                            steps {
+                                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
+                                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+                            }
                         }
                     }
                 }
@@ -174,7 +171,7 @@ pipeline {
             steps {
                 script {
                     // Push each Docker image to Docker Hub based on the branch
-                for (def service in microservices) {
+                    for (def service in microservices) {
                         if (env.BRANCH_NAME == 'test') {
                             sh "docker push ${DOCKERHUB_USERNAME}/${service}_test:latest"
                             sh "docker rmi ${DOCKERHUB_USERNAME}/${service}_test:latest"
