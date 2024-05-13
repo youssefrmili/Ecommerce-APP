@@ -1,3 +1,5 @@
+
+
 def microservices = ['ecomm-cart']
 
 pipeline {
@@ -38,26 +40,26 @@ pipeline {
             }
         }
 
-        // Replace the original "Source Composition Analysis" stage with the new "OWASP Dependency-Check Vulnerabilities" stage
-        stage('OWASP Dependency-Check Vulnerabilities') {
+        stage('Source Composition Analysis') {
+            when {
+                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
+            }
             steps {
                 script {
-                    // Perform OWASP Dependency-Check for each microservice
+                    // Perform OWASP dependency check for each microservice
                     for (def service in microservices) {
                         dir(service) {
-                            dependencyCheck additionalArguments: ''' 
-                                        -o './'
-                                        -s './'
-                                        -f 'ALL' 
-                                        --prettyPrint''', odcInstallation: 'DP-Check'
-                            dependencyCheckPublisher pattern: 'dependency-check-report.xml'
+                            sh 'rm -f owasp-dependency-check.sh'
+                            sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check.sh"'
+                            sh 'chmod +x owasp-dependency-check.sh'
+                            sh './owasp-dependency-check.sh'
+                            // Display analysis report
+                            sh 'cat /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.xml'
                         }
                     }
                 }
             }
         }
-
-        // The remaining stages in your pipeline (Build, Unit Test, SonarQube Analysis, Docker stages, etc.) remain the same
 
         stage('Build') {
             when {
