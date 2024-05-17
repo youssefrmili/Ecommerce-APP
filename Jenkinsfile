@@ -55,10 +55,8 @@ pipeline {
             steps {
                 // Use the SSH credentials to connect to the master node and deploy
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
-                    sh '''
-                        ssh -o StrictHostKeyChecking=no $MASTER_NODE 'kubectl apply -f nginx-deployment.yml'
-                        ssh -o StrictHostKeyChecking=no $MASTER_NODE 'kubectl apply -f nginx-service.yml'
-                    '''
+                    sh 'ssh -o StrictHostKeyChecking=no $MASTER_NODE 'kubectl apply -f nginx-deployment.yml && kubectl apply -f nginx-service.yml''
+                
                 }
             }
         }
