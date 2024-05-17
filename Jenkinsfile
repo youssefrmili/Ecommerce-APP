@@ -1,3 +1,5 @@
+def microservices = ['ecomm-cart']
+
 pipeline {
     agent any
 
