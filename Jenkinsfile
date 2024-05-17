@@ -5,7 +5,7 @@ pipeline {
 
     environment {
         DOCKERHUB_USERNAME = "youssefrm"
-        SSH_CREDENTIALS_ID = 'kub-id'
+        SSH_CREDENTIALS_ID = 'kubernetes-id'
         MASTER_NODE = 'youssef@K8s-Master'
     }
 
