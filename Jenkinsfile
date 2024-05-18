@@ -50,11 +50,21 @@ pipeline {
         }
 
         stage('Deploy to Kubernetes') {
+            when {
+                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
+            }
             steps {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
-                    sh "ssh $MASTER_NODE kubectl apply -f nginx-deployment.yml"       
+                    script {
+                        if (env.BRANCH_NAME == 'test') {
+                            sh "ssh $MASTER_NODE kubectl apply -f test_deployments/deployment.yml"
+                        } else if (env.BRANCH_NAME == 'master') {
+                            sh "ssh $MASTER_NODE kubectl apply -f prod_deployments/deployment.yml"
+                        }
+                    }
                 }
             }
         }
     }
 }
+
