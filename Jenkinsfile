@@ -12,7 +12,6 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Checkout the repository from GitHub
                 checkout([
                     $class: 'GitSCM',
                     branches: [[name: env.BRANCH_NAME]], // Checkout the current branch
@@ -43,7 +42,6 @@ pipeline {
             }
             steps {
                 script {
-                    // Log into Docker Hub using Jenkins credentials
                     withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                         sh "docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD"
                     }
@@ -53,11 +51,8 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                // Use the SSH credentials to connect to the master node and deploy
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
-                    sh "ssh -o StrictHostKeyChecking=no $MASTER_NODE kubectl apply -f nginx-deployment.yml"
-                    sh "ssh -o StrictHostKeyChecking=no $MASTER_NODE kubectl apply -f nginx-service.yml"
-                
+                    sh "ssh $MASTER_NODE kubectl apply -f nginx-deployment.yml"       
                 }
             }
         }
