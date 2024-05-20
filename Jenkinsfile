@@ -145,11 +145,11 @@ pipeline {
                     for (def service in microservices) {
                         def trivyReportFile = "trivy-${service}.txt"
                         if (env.BRANCH_NAME == 'test') {
-                            sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image --security-checks vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_test:latest > ${trivyReportFile}"
+                            sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  -v $PWD:/tmp/.cache/ aquasec/trivy image --security-checks vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_test:latest > ${trivyReportFile}"
                         } else if (env.BRANCH_NAME == 'master') {
-                            sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $PWD:/tmp/.cache/ aquasec/trivy image --scanners vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_prod:latest > ${trivyReportFile}"
+                            sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  -v $PWD:/tmp/.cache/ aquasec/trivy image --security-checks vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_test:latest > ${trivyReportFile}"
                         } else if (env.BRANCH_NAME == 'dev') {
-                            sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $PWD:/tmp/.cache/ aquasec/trivy image --scanners vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_dev:latest > ${trivyReportFile}"
+                            sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  -v $PWD:/tmp/.cache/ aquasec/trivy image --security-checks vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_test:latest > ${trivyReportFile}"
                         }
                     }
                 }
