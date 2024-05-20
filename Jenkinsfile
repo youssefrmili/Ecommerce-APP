@@ -28,7 +28,7 @@ pipeline {
                 script {
                     for (def service in microservices) {
                         dir(service) {
-                            sh 'docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest github --repo https://github.com/youssefrmili/Ecommerce-APP.git > trufflehog.txt'
+                            sh 'docker run --rm -it -v "$PWD:/pwd" trufflesecurity/trufflehog:latest github --repo https://github.com/youssefrmili/Ecommerce-APP.git > trufflehog.txt'
                             sh 'cat trufflehog.txt' // Output the results
                         }
                     }
@@ -93,14 +93,15 @@ pipeline {
                 script {
                     for (def service in microservices) {
                         dir(service) {
-                            withSonarQubeEnv('sonarqube') {
-                                sh 'mvn clean package sonar:sonar'
+                            withSonarQubeEnv('sonarqube-id') {
+                                sh 'mvn sonar:sonar'
                             }
                         }
                     }
                 }
             }
         }
+
         stage('Docker Login') {
             when {
                 expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
@@ -144,7 +145,7 @@ pipeline {
                     for (def service in microservices) {
                         def trivyReportFile = "trivy-${service}.txt"
                         if (env.BRANCH_NAME == 'test') {
-                            sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $PWD:/tmp/.cache/ aquasec/trivy image --scanners vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_test:latest > ${trivyReportFile}"
+                            sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $PWD:/tmp/.cache/ aquasec/trivy image --security-checks vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_test:latest > ${trivyReportFile}"
                         } else if (env.BRANCH_NAME == 'master') {
                             sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $PWD:/tmp/.cache/ aquasec/trivy image --scanners vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_prod:latest > ${trivyReportFile}"
                         } else if (env.BRANCH_NAME == 'dev') {
@@ -192,6 +193,12 @@ pipeline {
                     }
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: '**/trufflehog.txt, **/dependency-check-report.html, **/trivy-*.txt'
         }
     }
 }
