@@ -8,7 +8,6 @@ pipeline {
         SSH_CREDENTIALS_ID = 'kubernetes-id'
         MASTER_NODE = 'youssef@k8s-master'
     }
-
     stages {
         stage('Checkout') {
             steps {
@@ -155,50 +154,18 @@ pipeline {
                 }
             }
         }
-
-        stage('Docker Push') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                script {
-                    for (def service in microservices) {
-                        if (env.BRANCH_NAME == 'test') {
-                            sh "docker push ${DOCKERHUB_USERNAME}/${service}_test:latest"
-                            sh "docker rmi ${DOCKERHUB_USERNAME}/${service}_test:latest"
-                        } else if (env.BRANCH_NAME == 'master') {
-                            sh "docker push ${DOCKERHUB_USERNAME}/${service}_prod:latest"
-                            sh "docker rmi ${DOCKERHUB_USERNAME}/${service}_prod:latest"
-                        } else if (env.BRANCH_NAME == 'dev') {
-                            sh "docker push ${DOCKERHUB_USERNAME}/${service}_dev:latest"
-                            sh "docker rmi ${DOCKERHUB_USERNAME}/${service}_dev:latest"
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Deploy to Kubernetes') {
-            when {
-                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
-                    script {
-                        if (env.BRANCH_NAME == 'test') {
-                            sh "ssh $MASTER_NODE kubectl apply -f test_deployments/deployment.yml"
-                        } else if (env.BRANCH_NAME == 'master') {
-                            sh "ssh $MASTER_NODE kubectl apply -f prod_deployments/deployment.yml"
-                        }
-                    }
-                }
-            }
-        }
     }
 
     post {
         always {
-            archiveArtifacts artifacts: '**/trufflehog.txt, /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html/dependency-check-report.html, **/trivy-*.txt'
+            archiveArtifacts artifacts: '**/trufflehog.txt, /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html, **/trivy-*.txt'
+            emailext attachLog: true,
+                subject: "'${currentBuild.result}'",
+                body: "Project: ${env.JOB_NAME}<br/>" +
+                      "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                      "URL: ${env.BUILD_URL}<br/>",
+                to: 'yousseff.rmili@gmail.com',
+                attachmentsPattern: '**/trivy-*.txt, **/trufflehog.txt, /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html'
         }
     }
 }
