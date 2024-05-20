@@ -93,8 +93,8 @@ pipeline {
                 script {
                     for (def service in microservices) {
                         dir(service) {
-                            withSonarQubeEnv('sonarqube-id') {
-                                sh 'mvn sonar:sonar'
+                            withSonarQubeEnv('sonarqube') {
+                                sh 'mvn clean package sonar:sonar'
                             }
                         }
                     }
