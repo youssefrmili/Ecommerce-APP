@@ -6,7 +6,7 @@ pipeline {
     environment {
         DOCKERHUB_USERNAME = "youssefrm"
         SSH_CREDENTIALS_ID = 'kubernetes-id'
-        MASTER_NODE = 'youssef@K8s-Master'
+        MASTER_NODE = 'youssef@k8s-master'
     }
 
     stages {
