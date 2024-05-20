@@ -8,6 +8,7 @@ pipeline {
         SSH_CREDENTIALS_ID = 'kubernetes-id'
         MASTER_NODE = 'youssef@k8s-master'
     }
+
     stages {
         stage('Checkout') {
             steps {
@@ -149,6 +150,45 @@ pipeline {
                             sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  -v $PWD:/tmp/.cache/ aquasec/trivy image --security-checks vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_prod:latest > ${trivyReportFile}"
                         } else if (env.BRANCH_NAME == 'dev') {
                             sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  -v $PWD:/tmp/.cache/ aquasec/trivy image --security-checks vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_dev:latest > ${trivyReportFile}"
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Docker Push') {
+            when {
+                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
+            }
+            steps {
+                script {
+                    for (def service in microservices) {
+                        if (env.BRANCH_NAME == 'test') {
+                            sh "docker push ${DOCKERHUB_USERNAME}/${service}_test:latest"
+                            sh "docker rmi ${DOCKERHUB_USERNAME}/${service}_test:latest"
+                        } else if (env.BRANCH_NAME == 'master') {
+                            sh "docker push ${DOCKERHUB_USERNAME}/${service}_prod:latest"
+                            sh "docker rmi ${DOCKERHUB_USERNAME}/${service}_prod:latest"
+                        } else if (env.BRANCH_NAME == 'dev') {
+                            sh "docker push ${DOCKERHUB_USERNAME}/${service}_dev:latest"
+                            sh "docker rmi ${DOCKERHUB_USERNAME}/${service}_dev:latest"
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            when {
+                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
+            }
+            steps {
+                sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
+                    script {
+                        if (env.BRANCH_NAME == 'test') {
+                            sh "ssh $MASTER_NODE kubectl apply -f test_deployments/deployment.yml"
+                        } else if (env.BRANCH_NAME == 'master') {
+                            sh "ssh $MASTER_NODE kubectl apply -f prod_deployments/deployment.yml"
                         }
                     }
                 }
