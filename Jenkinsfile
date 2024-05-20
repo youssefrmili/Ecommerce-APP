@@ -198,7 +198,7 @@ pipeline {
 
     post {
         always {
-            archiveArtifacts artifacts: '**/trufflehog.txt, **/dependency-check-report.html, **/trivy-*.txt'
+            archiveArtifacts artifacts: '**/trufflehog.txt, /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html/dependency-check-report.html, **/trivy-*.txt'
         }
     }
 }
