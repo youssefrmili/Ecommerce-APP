@@ -147,9 +147,9 @@ pipeline {
                         if (env.BRANCH_NAME == 'test') {
                             sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  -v $PWD:/tmp/.cache/ aquasec/trivy image --security-checks vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_test:latest > ${trivyReportFile}"
                         } else if (env.BRANCH_NAME == 'master') {
-                            sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  -v $PWD:/tmp/.cache/ aquasec/trivy image --security-checks vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_test:latest > ${trivyReportFile}"
+                            sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  -v $PWD:/tmp/.cache/ aquasec/trivy image --security-checks vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_prod:latest > ${trivyReportFile}"
                         } else if (env.BRANCH_NAME == 'dev') {
-                            sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  -v $PWD:/tmp/.cache/ aquasec/trivy image --security-checks vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_test:latest > ${trivyReportFile}"
+                            sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  -v $PWD:/tmp/.cache/ aquasec/trivy image --security-checks vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_dev:latest > ${trivyReportFile}"
                         }
                     }
                 }
