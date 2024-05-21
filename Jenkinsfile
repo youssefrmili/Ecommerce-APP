@@ -1,5 +1,5 @@
 def microservices = ['ecomm-cart', 'ecomm-order', 'ecomm-product', 'ecomm-web']
-def frontEndService = 'ecomm-ui'
+def frontEndService = 'front'
 
 pipeline {
     agent any
@@ -40,11 +40,12 @@ pipeline {
                     def services = microservices + frontEndService
                     for (def service in services) {
                         dir(service) {
+                            def reportFile = "${service}-dependency-check-report.html"
                             sh 'rm -f owasp-dependency-check.sh'
                             sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check.sh"'
                             sh 'chmod +x owasp-dependency-check.sh'
-                            sh './owasp-dependency-check.sh'
-                            sh 'cat /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html'
+                            sh "./owasp-dependency-check.sh"
+                            sh "mv /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html /var/lib/jenkins/OWASP-Dependency-Check/reports/${reportFile}"
                         }
                     }
                 }
@@ -64,7 +65,6 @@ pipeline {
                     }
                     dir(frontEndService) {
                         sh 'npm install'
-                        sh 'npm run build'
                     }
                 }
             }
@@ -192,14 +192,14 @@ pipeline {
 
     post {
         always {
-            archiveArtifacts artifacts: '**/trufflehog.txt, /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html, **/trivy-*.txt'
+            archiveArtifacts artifacts: '**/trufflehog.txt, /var/lib/jenkins/OWASP-Dependency-Check/reports/*.html, **/trivy-*.txt'
             emailext attachLog: true,
                 subject: "'${currentBuild.result}'",
                 body: "Project: ${env.JOB_NAME}<br/>" +
                       "Build Number: ${env.BUILD_NUMBER}<br/>" +
                       "URL: ${env.BUILD_URL}<br/>",
                 to: 'yousseff.rmili@gmail.com',
-                attachmentsPattern: '**/trivy-*.txt, **/trufflehog.txt, /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html'
+                attachmentsPattern: '**/trivy-*.txt, **/trufflehog.txt, /var/lib/jenkins/OWASP-Dependency-Check/reports/*.html'
         }
     }
 }
