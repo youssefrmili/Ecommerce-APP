@@ -1,5 +1,5 @@
 def microservices = ['ecomm-cart', 'ecomm-order', 'ecomm-product', 'ecomm-web']
-def frontEndService = 'front'
+def frontEndService = 'ecomm-ui'
 
 pipeline {
     agent any
