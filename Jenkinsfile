@@ -1,4 +1,5 @@
-def microservices = ['ecomm-cart','ecomm-order','ecomm-product','ecomm-web']
+def microservices = ['ecomm-cart', 'ecomm-order', 'ecomm-product', 'ecomm-web']
+def frontEndService = 'ecomm-ui'
 
 pipeline {
     agent any
@@ -26,7 +27,8 @@ pipeline {
             }
             steps {
                 script {
-                    for (def service in microservices) {
+                    def services = microservices + frontEndService
+                    for (def service in services) {
                         dir(service) {
                             sh 'docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest github --repo https://github.com/youssefrmili/Ecommerce-APP.git > trufflehog.txt'
                             sh 'cat trufflehog.txt' // Output the results
@@ -42,7 +44,8 @@ pipeline {
             }
             steps {
                 script {
-                    for (def service in microservices) {
+                    def services = microservices + frontEndService
+                    for (def service in services) {
                         dir(service) {
                             sh 'rm -f owasp-dependency-check.sh'
                             sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check.sh"'
@@ -66,6 +69,10 @@ pipeline {
                             sh 'mvn clean install'
                         }
                     }
+                    dir(frontEndService) {
+                        sh 'npm install'
+                        sh 'npm run build'
+                    }
                 }
             }
         }
@@ -80,6 +87,9 @@ pipeline {
                         dir(service) {
                             sh 'mvn test'
                         }
+                    }
+                    dir(frontEndService) {
+                        sh 'npm test'
                     }
                 }
             }
@@ -96,6 +106,11 @@ pipeline {
                             withSonarQubeEnv('sonarqube') {
                                 sh 'mvn clean package sonar:sonar'
                             }
+                        }
+                    }
+                    dir(frontEndService) {
+                        withSonarQubeEnv('sonarqube') {
+                            sh 'npm run sonar'
                         }
                     }
                 }
@@ -121,7 +136,8 @@ pipeline {
             }
             steps {
                 script {
-                    for (def service in microservices) {
+                    def services = microservices + frontEndService
+                    for (def service in services) {
                         dir(service) {
                             if (env.BRANCH_NAME == 'test') {
                                 sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_test:latest ."
@@ -142,7 +158,8 @@ pipeline {
             }
             steps {
                 script {
-                    for (def service in microservices) {
+                    def services = microservices + frontEndService
+                    for (def service in services) {
                         def trivyReportFile = "trivy-${service}.txt"
                         if (env.BRANCH_NAME == 'test') {
                             sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  -v $PWD:/tmp/.cache/ aquasec/trivy image --security-checks vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_test:latest > ${trivyReportFile}"
@@ -162,7 +179,8 @@ pipeline {
             }
             steps {
                 script {
-                    for (def service in microservices) {
+                    def services = microservices + frontEndService
+                    for (def service in services) {
                         if (env.BRANCH_NAME == 'test') {
                             sh "docker push ${DOCKERHUB_USERNAME}/${service}_test:latest"
                             sh "docker rmi ${DOCKERHUB_USERNAME}/${service}_test:latest"
@@ -172,23 +190,6 @@ pipeline {
                         } else if (env.BRANCH_NAME == 'dev') {
                             sh "docker push ${DOCKERHUB_USERNAME}/${service}_dev:latest"
                             sh "docker rmi ${DOCKERHUB_USERNAME}/${service}_dev:latest"
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Deploy to Kubernetes') {
-            when {
-                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
-                    script {
-                        if (env.BRANCH_NAME == 'test') {
-                            sh "ssh $MASTER_NODE kubectl apply -f test_deployments/deployment.yml"
-                        } else if (env.BRANCH_NAME == 'master') {
-                            sh "ssh $MASTER_NODE kubectl apply -f prod_deployments/deployment.yml"
                         }
                     }
                 }
