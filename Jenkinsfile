@@ -1,4 +1,4 @@
-def microservices = ['ecomm-cart']
+def microservices = ['ecomm-cart','ecomm-order','ecomm-product','ecomm-web']
 
 pipeline {
     agent any
