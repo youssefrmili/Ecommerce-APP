@@ -26,15 +26,8 @@ pipeline {
                 expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
             }
             steps {
-                script {
-                    def services = microservices + frontEndService
-                    for (def service in services) {
-                        dir(service) {
-                            sh 'docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest github --repo https://github.com/youssefrmili/Ecommerce-APP.git > trufflehog.txt'
-                            sh 'cat trufflehog.txt' // Output the results
-                        }
-                    }
-                }
+                sh 'docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest github --repo https://github.com/youssefrmili/Ecommerce-APP.git > trufflehog.txt'
+                sh 'cat trufflehog.txt' // Output the results
             }
         }
 
