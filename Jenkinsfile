@@ -179,9 +179,7 @@ pipeline {
                     for (def service in services) {
                         def trivyReportFile = "trivy-${service}.txt"
                         if (env.BRANCH_NAME == 'test') {
-                            docker.image('aquasec/trivy:latest').inside("""-v /var/run/docker.sock:/var/run/docker.sock -u 0 --entrypoint=''""") {
-                                sh "/usr/local/bin/trivy image --security-checks vuln ${DOCKERHUB_USERNAME}/${service}_test:latest > ${trivyReportFile}"
-                            }
+                            sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $PWD:/tmp/.cache/ aquasec/trivy:0.51.2 image --scanners vuln  ${DOCKERHUB_USERNAME}/${service}_test:latest > ${trivyReportFile}"
                         } else if (env.BRANCH_NAME == 'master') {
                             sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $PWD:/tmp/.cache/ aquasec/trivy image --security-checks vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_prod:latest > ${trivyReportFile}"
                         } else if (env.BRANCH_NAME == 'dev') {
