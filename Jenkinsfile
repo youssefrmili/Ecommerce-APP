@@ -89,23 +89,28 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                script {
-                def services = microservices + frontEndService
-                for (def service in services) {
-                    dir(service) {
+stage('SonarQube Analysis') {
+    when {
+        expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
+    }
+    steps {
+        script {
+            def services = microservices + frontEndService
+            for (def service in services) {
+                dir(service) {
+                    if (service == frontEndService) {
+                        sh "${SCANNER_HOME}/bin/sonar-scanner" // Execute SonarQube scanner for frontend service
+                    } else {
                         withSonarQubeEnv('sonarqube') {
                             sh 'mvn clean package sonar:sonar'
                         }
-                      }  
                     }
                 }
             }
         }
+    }
+}
+
 
         stage('Docker Login') {
             when {
