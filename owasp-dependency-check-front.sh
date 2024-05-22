@@ -16,7 +16,7 @@ fi
 # Make sure we are using the latest version
 
 docker run --rm \
-    --volume $(pwd)/ecomm-ui:/src \
+    --volume $(pwd):/ecomm-ui \
     --volume "$DATA_DIRECTORY":/usr/share/dependency-check/data \
     --volume "$REPORT_DIRECTORY":/report \
     owasp/dependency-check \
