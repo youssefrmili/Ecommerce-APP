@@ -63,9 +63,6 @@ pipeline {
                             sh 'mvn clean install'
                         }
                     }
-                    dir(frontEndService) {
-                        sh 'npm install'
-                    }
                 }
             }
         }
