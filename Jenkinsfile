@@ -99,7 +99,8 @@ stage('SonarQube Analysis') {
             for (def service in services) {
                 dir(service) {
                     if (service == frontEndService) {
-                        sh "${SCANNER_HOME}/bin/sonar-scanner" // Execute SonarQube scanner for frontend service
+                         withSonarQubeEnv('sonarqube') {
+                        sh "${SCANNER_HOME}/bin/sonar-scanner" } // Execute SonarQube scanner for frontend service
                     } else {
                         withSonarQubeEnv('sonarqube') {
                             sh 'mvn clean package sonar:sonar'
