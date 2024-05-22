@@ -180,7 +180,7 @@ stage('SonarQube Analysis') {
                         def trivyReportFile = "trivy-${service}.txt"
                         if (env.BRANCH_NAME == 'test') {
                            docker.image('aquasec/trivy:latest').inside("""-v /var/run/docker.sock:/var/run/docker.sock -u 0 --entrypoint=''""") {
-    trivyScanResult = sh(script: "/usr/local/bin/trivy image --secuirty-checks vuln...", returnStdout: true)
+    trivyScanResult = sh(script: "/usr/local/bin/trivy image --secuirty-checks vuln ${DOCKERHUB_USERNAME}/${service}_test:latest", returnStdout: true)
 }
                         }
                         } else if (env.BRANCH_NAME == 'master') {
