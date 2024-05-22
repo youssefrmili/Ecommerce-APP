@@ -40,7 +40,7 @@ pipeline {
         def services = microservices + frontEndService
         for (def service in services) {
             dir(service) {
-                def reportFile = "${service}-dependency-check-report.html"
+                def reportFile = "dependency-check-report-${service}.html"
                 if (service == frontEndService) {
                     sh 'rm -f owasp-dependency-check-front.sh'
                     sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check-front.sh"'
