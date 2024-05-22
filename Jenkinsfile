@@ -89,32 +89,32 @@ pipeline {
             }
         }
 
-stage('SonarQube Analysis') {
-    environment {
+        stage('SonarQube Analysis') {
+            environment {
                 SCANNER_HOME = tool 'sonarqube'; 
             }
-    when {
-        expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-    }
-    steps {
-        script {
-            def services = microservices + frontEndService
-            for (def service in services) {
-                dir(service) {
-                    if (service == frontEndService) {
-                         withSonarQubeEnv('sonarqube') {
-                        sh "${SCANNER_HOME}/bin/sonar-scanner" } // Execute SonarQube scanner for frontend service
-                    } else {
-                        withSonarQubeEnv('sonarqube') {
-                            sh 'mvn clean package sonar:sonar'
+            when {
+                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
+            }
+            steps {
+                script {
+                    def services = microservices + frontEndService
+                    for (def service in services) {
+                        dir(service) {
+                            if (service == frontEndService) {
+                                withSonarQubeEnv('sonarqube') {
+                                    sh "${SCANNER_HOME}/bin/sonar-scanner" // Execute SonarQube scanner for frontend service
+                                }
+                            } else {
+                                withSonarQubeEnv('sonarqube') {
+                                    sh 'mvn clean package sonar:sonar'
+                                }
+                            }
                         }
                     }
                 }
             }
         }
-    }
-}
-
 
         stage('Docker Login') {
             when {
@@ -179,14 +179,13 @@ stage('SonarQube Analysis') {
                     for (def service in services) {
                         def trivyReportFile = "trivy-${service}.txt"
                         if (env.BRANCH_NAME == 'test') {
-                           docker.image('aquasec/trivy:latest').inside("""-v /var/run/docker.sock:/var/run/docker.sock -u 0 --entrypoint=''""") {
-    trivyScanResult = sh(script: "/usr/local/bin/trivy image --secuirty-checks vuln ${DOCKERHUB_USERNAME}/${service}_test:latest", returnStdout: true)
-}
-                        }
+                            docker.image('aquasec/trivy:latest').inside("""-v /var/run/docker.sock:/var/run/docker.sock -u 0 --entrypoint=''""") {
+                                sh "/usr/local/bin/trivy image --security-checks vuln ${DOCKERHUB_USERNAME}/${service}_test:latest > ${trivyReportFile}"
+                            }
                         } else if (env.BRANCH_NAME == 'master') {
-                            sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  -v $PWD:/tmp/.cache/ aquasec/trivy image --security-checks vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_prod:latest > ${trivyReportFile}"
+                            sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $PWD:/tmp/.cache/ aquasec/trivy image --security-checks vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_prod:latest > ${trivyReportFile}"
                         } else if (env.BRANCH_NAME == 'dev') {
-                            sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  -v $PWD:/tmp/.cache/ aquasec/trivy image --security-checks vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_dev:latest > ${trivyReportFile}"
+                            sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $PWD:/tmp/.cache/ aquasec/trivy image --security-checks vuln --timeout 30m ${DOCKERHUB_USERNAME}/${service}_dev:latest > ${trivyReportFile}"
                         }
                     }
                 }
