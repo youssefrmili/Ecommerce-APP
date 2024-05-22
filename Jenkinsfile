@@ -94,12 +94,14 @@ pipeline {
                 expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
             }
             steps {
+                script {
                 def services = microservices + frontEndService
                 for (def service in services) {
                     dir(service) {
                         withSonarQubeEnv('sonarqube') {
                             sh 'mvn clean package sonar:sonar'
                         }
+                      }  
                     }
                 }
             }
