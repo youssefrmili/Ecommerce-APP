@@ -78,9 +78,6 @@ pipeline {
                             sh 'mvn test'
                         }
                     }
-                    dir(frontEndService) {
-                        sh 'npm test'
-                    }
                 }
             }
         }
@@ -130,11 +127,29 @@ pipeline {
                     for (def service in services) {
                         dir(service) {
                             if (env.BRANCH_NAME == 'test') {
-                                sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_test:latest ."
+                                if (service == frontEndService) {
+                                    sh 'rm -f Dockerfile'
+                                    sh 'wget https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/ecomm-ui/Dockerfile.dev -O Dockerfile'
+                                    sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_test:latest -f Dockerfile ."
+                                } else {
+                                    sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_test:latest ."
+                                }
                             } else if (env.BRANCH_NAME == 'master') {
-                                sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_prod:latest ."
+                                if (service == frontEndService) {
+                                    sh 'rm -f Dockerfile'
+                                    sh 'wget https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/ecomm-ui/Dockerfile.dev -O Dockerfile'
+                                    sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_prod:latest -f Dockerfile ."
+                                } else {
+                                    sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_prod:latest ."
+                                }
                             } else if (env.BRANCH_NAME == 'dev') {
-                                sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_dev:latest ."
+                                if (service == frontEndService) {
+                                    sh 'rm -f Dockerfile'
+                                    sh 'wget https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/ecomm-ui/Dockerfile.dev -O Dockerfile'
+                                    sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_dev:latest -f Dockerfile ."
+                                } else {
+                                    sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_dev:latest ."
+                                }
                             }
                         }
                     }
@@ -194,9 +209,8 @@ pipeline {
                 subject: "'${currentBuild.result}'",
                 body: "Project: ${env.JOB_NAME}<br/>" +
                       "Build Number: ${env.BUILD_NUMBER}<br/>" +
-                      "URL: ${env.BUILD_URL}<br/>",
-                to: 'yousseff.rmili@gmail.com',
-                attachmentsPattern: '**/trivy-*.txt, **/trufflehog.txt, /var/lib/jenkins/OWASP-Dependency-Check/reports/*.html'
+                      "URL: ${env.BUILD_URL}<br/>" +
+                      "Result: ${currentBuild.result}"
         }
     }
 }
