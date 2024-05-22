@@ -20,7 +20,7 @@ docker run --rm \
     --volume "$DATA_DIRECTORY":/usr/share/dependency-check/data \
     --volume "$REPORT_DIRECTORY":/report \
     owasp/dependency-check \
-    --scan /src/package-lock.json \
+    --scan package-lock.json \
     --exclude "dependency-check-bin" \
     --format HTML \
     --project "Frontend OWASP Dependency Check Project" \
