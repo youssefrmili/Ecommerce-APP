@@ -35,21 +35,29 @@ pipeline {
             when {
                 expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
             }
-            steps {
-                script {
-                    def services = microservices + frontEndService
-                    for (def service in services) {
-                        dir(service) {
-                            def reportFile = "${service}-dependency-check-report.html"
-                            sh 'rm -f owasp-dependency-check.sh'
-                            sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check.sh"'
-                            sh 'chmod +x owasp-dependency-check.sh'
-                            sh "./owasp-dependency-check.sh"
-                            sh "mv /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html /var/lib/jenkins/OWASP-Dependency-Check/reports/${reportFile}"
-                        }
-                    }
+           steps {
+    script {
+        def services = microservices + frontEndService
+        for (def service in services) {
+            dir(service) {
+                def reportFile = "${service}-dependency-check-report.html"
+                if (service == frontEndService) {
+                    sh 'rm -f owasp-dependency-check-front.sh'
+                    sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check-front.sh"'
+                    sh 'chmod +x owasp-dependency-check-front.sh'
+                    sh "./owasp-dependency-check-front.sh"
+                } else {
+                    sh 'rm -f owasp-dependency-check.sh'
+                    sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check.sh"'
+                    sh 'chmod +x owasp-dependency-check.sh'
+                    sh "./owasp-dependency-check.sh"
                 }
+                sh "mv /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html /var/lib/jenkins/OWASP-Dependency-Check/reports/${reportFile}"
             }
+        }
+    }
+}
+
         }
 
         stage('Build') {
