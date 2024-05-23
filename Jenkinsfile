@@ -51,7 +51,7 @@ pipeline {
                                 sh 'chmod +x owasp-dependency-check.sh'
                                 sh "./owasp-dependency-check.sh"
                             }
-                            sh "mv /var/lib/jenkins/workspace/Ecommerce_APP_test/reports/dependency-check-report.html /var/lib/jenkins/workspace/Ecommerce_APP_test/reports/${reportFile}"
+                            sh "mv /var/lib/jenkins/workspace/**/reports/dependency-check-report.html /var/lib/jenkins/workspace/**/reports/${reportFile}"
                         }
                     }
                 }
