@@ -27,7 +27,6 @@ pipeline {
             }
             steps {
                 sh 'docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest github --repo https://github.com/youssefrmili/Ecommerce-APP.git > trufflehog.txt'
-                sh 'cat trufflehog.txt' // Output the results
             }
         }
 
