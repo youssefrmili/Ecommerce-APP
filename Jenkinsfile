@@ -1,4 +1,4 @@
-def microservices = ['ecomm-cart']
+def microservices = ['ecomm-cart','ecomm-order','ecomm-product','ecomm-web']
 def frontEndService = 'ecomm-ui'
 
 pipeline {
@@ -216,7 +216,7 @@ pipeline {
 
     post {
         always {
-            archiveArtifacts artifacts: '**/trufflehog.txt, /var/lib/jenkins/OWASP-Dependency-Check/reports/*.html, **/trivy-*.txt'
+            archiveArtifacts artifacts: '**/trufflehog.txt, ../../OWASP-Dependency-Check/reports/*.html, **/trivy-*.txt'
             emailext attachLog: true,
                 subject: "'${currentBuild.result}'",
                 body: "Project: ${env.JOB_NAME}<br/>" +
