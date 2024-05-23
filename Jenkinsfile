@@ -215,7 +215,7 @@ pipeline {
 
     post {
         always {
-            archiveArtifacts artifacts: '**/trufflehog.txt, ../../OWASP-Dependency-Check/reports/*.html, **/trivy-*.txt'
+            archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt'
             emailext attachLog: true,
                 subject: "'${currentBuild.result}'",
                 body: "Project: ${env.JOB_NAME}<br/>" +
