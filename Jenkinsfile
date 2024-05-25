@@ -1,4 +1,4 @@
-def microservices = ['ecomm-cart','ecomm-order','ecomm-product','ecomm-web']
+def microservices = ['ecomm-web']
 def frontEndService = 'ecomm-ui'
 
 pipeline {
@@ -211,6 +211,23 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy to Kubernetes') {
+            when {
+                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
+            }
+            steps {
+                sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
+                    script {
+                        if (env.BRANCH_NAME == 'test') {
+                            sh "ssh $MASTER_NODE kubectl apply -f test_deployments/deployment.yml"
+                        } else if (env.BRANCH_NAME == 'master') {
+                            sh "ssh $MASTER_NODE kubectl apply -f prod_deployments/deployment.yml"
+                        }
+                    }
+                }
+            }
+        }
     }
 
     post {
@@ -221,7 +238,9 @@ pipeline {
                 body: "Project: ${env.JOB_NAME}<br/>" +
                       "Build Number: ${env.BUILD_NUMBER}<br/>" +
                       "URL: ${env.BUILD_URL}<br/>" +
-                      "Result: ${currentBuild.result}"
+                      "Result: ${currentBuild.result}",
+                to: 'yousseff.rmili@gmail.com',  // Change to your email address
+                attachmentsPattern: '**/trivy-*.txt, **/reports/*.html, **/trufflehog.txt'
         }
     }
 }
