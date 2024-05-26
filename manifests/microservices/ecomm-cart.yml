@@ -1,0 +1,38 @@
+# cart.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart
+  namespace: test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cart
+  template:
+    metadata:
+      labels:
+        app: cart
+    spec:
+      containers:
+        - name: cart
+          image: youssefrm/ecomm-cart_test
+          ports:
+            - containerPort: 8082
+          envFrom:
+            - configMapRef:
+                name: app-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cart
+  namespace: test
+spec:
+  type: ClusterIP
+  selector:
+    app: cart
+  ports:
+    - port: 8082
+      targetPort: 8082

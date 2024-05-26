@@ -1,0 +1,38 @@
+# order.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order
+  namespace: test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order
+  template:
+    metadata:
+      labels:
+        app: order
+    spec:
+      containers:
+        - name: order
+          image: youssefrm/ecomm-order_test
+          ports:
+            - containerPort: 8083
+          envFrom:
+            - configMapRef:
+                name: app-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order
+  namespace: test
+spec:
+  type: ClusterIP
+  selector:
+    app: order
+  ports:
+    - port: 8083
+      targetPort: 8083
