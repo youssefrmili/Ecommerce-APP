@@ -205,14 +205,14 @@ pipeline {
                             sh "ssh $MASTER_NODE kubectl apply -f test_deployments/namespace.yml"
                             sh "ssh $MASTER_NODE kubectl apply -f test_deployments/infrastructure/"
                             def services = microservices + frontEndService
-                            for (def service in microservices) {
+                            for (def service in services) {
                                 sh "ssh $MASTER_NODE kubectl apply -f test_deployments/microservices/${service}.yml"
                             }
                         } else if (env.BRANCH_NAME == 'master') {
                             sh "ssh $MASTER_NODE kubectl apply -f prod_deployments/namespace.yml"
                             sh "ssh $MASTER_NODE kubectl apply -f prod_deployments/infrastructure/"
                             def services = microservices + frontEndService
-                            for (def service in microservices) {
+                            for (def service in services) {
                                 sh "ssh $MASTER_NODE kubectl apply -f prod_deployments/microservices/${service}.yml"
                             }
                         }
