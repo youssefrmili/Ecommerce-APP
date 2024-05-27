@@ -6,7 +6,7 @@ pipeline {
 
     environment {
         DOCKERHUB_USERNAME = "youssefrm"
-        SSH_CREDENTIALS_ID = 'kub-ssh-id'
+        SSH_CREDENTIALS_ID = 'ssh-id'
         MASTER_NODE = 'youssef@k8s-master'
     }
 
