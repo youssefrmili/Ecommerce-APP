@@ -1,4 +1,4 @@
-def microservices = ['ecomm-web', 'ecomm-ui']
+def microservices = ['ecomm-web']
 def frontEndService = 'ecomm-ui'
 
 pipeline {
