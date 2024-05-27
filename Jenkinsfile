@@ -138,27 +138,15 @@ pipeline {
                     for (def service in services) {
                         dir(service) {
                             if (env.BRANCH_NAME == 'test') {
-                                if (service == frontEndService) {
-                                    sh 'rm -f Dockerfile'
-                                    sh 'wget https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/ecomm-ui/Dockerfile.dev -O Dockerfile'
-                                    sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_test:latest -f Dockerfile ."
-                                } else {
+                            
                                     sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_test:latest ."
                                 }
                             } else if (env.BRANCH_NAME == 'master') {
-                                if (service == frontEndService) {
-                                    sh 'rm -f Dockerfile'
-                                    sh 'wget https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/ecomm-ui/Dockerfile.dev -O Dockerfile'
-                                    sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_prod:latest -f Dockerfile ."
-                                } else {
+                                
                                     sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_prod:latest ."
                                 }
                             } else if (env.BRANCH_NAME == 'dev') {
-                                if (service == frontEndService) {
-                                    sh 'rm -f Dockerfile'
-                                    sh 'wget https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/ecomm-ui/Dockerfile.dev -O Dockerfile'
-                                    sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_dev:latest -f Dockerfile ."
-                                } else {
+                                
                                     sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_dev:latest ."
                                 }
                             }
