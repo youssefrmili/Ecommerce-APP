@@ -160,11 +160,11 @@ pipeline {
                     for (def service in services) {
                         def trivyReportFile = "trivy-${service}.txt"
                         if (env.BRANCH_NAME == 'test') {
-                            sh "sudo trivy image ${DOCKERHUB_USERNAME}/${service}_test:latest > ${trivyReportFile}"                        
+                            sh "sudo trivy --timeout 15m image ${DOCKERHUB_USERNAME}/${service}_test:latest > ${trivyReportFile}"                        
                         } else if (env.BRANCH_NAME == 'master') {
-                            sh "sudo trivy image ${DOCKERHUB_USERNAME}/${service}_prod:latest > ${trivyReportFile}"                        
+                            sh "sudo trivy --timeout 15m image ${DOCKERHUB_USERNAME}/${service}_prod:latest > ${trivyReportFile}"                        
                         } else if (env.BRANCH_NAME == 'dev') {
-                            sh "sudo trivy image ${DOCKERHUB_USERNAME}/${service}_dev:latest > ${trivyReportFile}"                        
+                            sh "sudo trivy --timeout 15m image ${DOCKERHUB_USERNAME}/${service}_dev:latest > ${trivyReportFile}"                        
                         }
                     }
                 }
