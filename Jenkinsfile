@@ -90,7 +90,7 @@ pipeline {
 
         stage('SonarQube Analysis') {
             environment {
-                SCANNER_HOME = tool 'sonarqube'; 
+                SCANNER_HOME = tool 'sonarqube'
             }
             when {
                 expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
@@ -138,17 +138,11 @@ pipeline {
                     for (def service in services) {
                         dir(service) {
                             if (env.BRANCH_NAME == 'test') {
-                            
-                                    sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_test:latest ."
-                                }
+                                sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_test:latest ."
                             } else if (env.BRANCH_NAME == 'master') {
-                                
-                                    sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_prod:latest ."
-                                }
+                                sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_prod:latest ."
                             } else if (env.BRANCH_NAME == 'dev') {
-                                
-                                    sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_dev:latest ."
-                                }
+                                sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_dev:latest ."
                             }
                         }
                     }
@@ -166,11 +160,11 @@ pipeline {
                     for (def service in services) {
                         def trivyReportFile = "trivy-${service}.txt"
                         if (env.BRANCH_NAME == 'test') {
-                             sh "sudo trivy image ${DOCKERHUB_USERNAME}/${service}_test:latest > ${trivyReportFile}"                        
+                            sh "sudo trivy image ${DOCKERHUB_USERNAME}/${service}_test:latest > ${trivyReportFile}"                        
                         } else if (env.BRANCH_NAME == 'master') {
-                             sh "sudo trivy image ${DOCKERHUB_USERNAME}/${service}_prod:latest > ${trivyReportFile}"                        
+                            sh "sudo trivy image ${DOCKERHUB_USERNAME}/${service}_prod:latest > ${trivyReportFile}"                        
                         } else if (env.BRANCH_NAME == 'dev') {
-                             sh "sudo trivy image ${DOCKERHUB_USERNAME}/${service}_dev:latest > ${trivyReportFile}"                        
+                            sh "sudo trivy image ${DOCKERHUB_USERNAME}/${service}_dev:latest > ${trivyReportFile}"                        
                         }
                     }
                 }
