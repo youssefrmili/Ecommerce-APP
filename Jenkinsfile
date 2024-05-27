@@ -1,4 +1,4 @@
-def microservices = ['ecomm-web']
+def microservices = ['ecomm-web', 'ecomm-ui']
 def frontEndService = 'ecomm-ui'
 
 pipeline {
@@ -220,9 +220,17 @@ pipeline {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
                     script {
                         if (env.BRANCH_NAME == 'test') {
-                            sh "ssh $MASTER_NODE kubectl apply -f test_deployments/deployment.yml"
+                            sh "ssh $MASTER_NODE kubectl apply -f test_deployments/namespace.yml"
+                            sh "ssh $MASTER_NODE kubectl apply -f test_deployments/infrastructure/"
+                            for (def service in microservices) {
+                                sh "ssh $MASTER_NODE kubectl apply -f test_deployments/microservices/${service}.yml"
+                            }
                         } else if (env.BRANCH_NAME == 'master') {
-                            sh "ssh $MASTER_NODE kubectl apply -f prod_deployments/deployment.yml"
+                            sh "ssh $MASTER_NODE kubectl apply -f prod_deployments/namespace.yml"
+                            sh "ssh $MASTER_NODE kubectl apply -f prod_deployments/infrastructure/"
+                            for (def service in microservices) {
+                                sh "ssh $MASTER_NODE kubectl apply -f prod_deployments/microservices/${service}.yml"
+                            }
                         }
                     }
                 }
