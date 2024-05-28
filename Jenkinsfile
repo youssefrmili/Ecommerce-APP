@@ -210,7 +210,7 @@ stage('Deploy to Kubernetes') {
                 }
 
                 sh "rm -f deploy_to_${deployenv}.sh"
-                sh "wget \"https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/dev/deploy_to_${deployenv}.sh\""
+                sh "wget \"https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/deploy_to_${deployenv}.sh\""
                 sh "scp deploy_to_${deployenv}.sh \$MASTER_NODE:~"
                 sh "ssh $MASTER_NODE chmod +x deploy_to_${deployenv}.sh"
                 sh "ssh $MASTER_NODE ./deploy_to_${deployenv}.sh"
