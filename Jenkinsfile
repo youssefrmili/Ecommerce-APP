@@ -229,6 +229,7 @@ stage('Deploy to Kubernetes') {
                       "Result: ${currentBuild.result}",
                 to: 'yousseff.rmili@gmail.com',  // Change to your email address
                 attachmentsPattern: '**/trivy-*.txt, **/reports/*.html, **/trufflehog.txt'
-        }
-    }
+         }
+      }
+   }
 }
