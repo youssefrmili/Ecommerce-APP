@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the target directory
-TARGET_DIR="test_manifests"
+TARGET_DIR="prod_manifests"
 
 # Delete the directory if it exists
 if [ -d "$TARGET_DIR" ]; then
