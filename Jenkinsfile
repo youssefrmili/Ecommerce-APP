@@ -213,10 +213,15 @@ pipeline {
                                 sh "ssh $MASTER_NODE kubectl apply -f test_manifests/microservices/${service}.yml" 
                             }
                         } else if (env.BRANCH_NAME == 'master') {
-                            sh "ssh $MASTER_NODE kubectl apply -f prod_deployments/namespace.yml"
-                            sh "ssh $MASTER_NODE kubectl apply -f prod_deployments/infrastructure/"
-                            for (def service in microservices) {
-                                sh "ssh $MASTER_NODE kubectl apply -f prod_deployments/microservices/${service}.yml"
+                            sh "rm -f deploy_to_test.sh"
+                            sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/dev/deploy_to_test.sh"'
+                            sh "scp deploy_to_test.sh $MASTER_NODE:~"
+                            sh "ssh $MASTER_NODE chmod +x deploy_to_test.sh"
+                            sh "ssh $MASTER_NODE ./deploy_to_test.sh"
+                            sh "ssh $MASTER_NODE kubectl apply -f test_manifests/namespace.yml"
+                            sh "ssh $MASTER_NODE kubectl apply -f test_manifests/infrastructure/"
+                            for (def service in services) {
+                                sh "ssh $MASTER_NODE kubectl apply -f test_manifests/microservices/${service}.yml" 
                             }
                         }
                     }
