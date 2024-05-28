@@ -194,25 +194,27 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes') {
+ stage('Deploy to Kubernetes') {
             when {
-                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
+                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'dev') }
             }
             steps {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
                     script {
-                        if (env.BRANCH_NAME == 'test') {
-                            sh "ssh $MASTER_NODE kubectl apply -f test_deployments/namespace.yml"
-                            sh "ssh $MASTER_NODE kubectl apply -f test_deployments/infrastructure/"
-                            def services = microservices + frontEndService
+                        if (env.BRANCH_NAME == 'dev') {
+                            sh "rm -f deploy_to_test.sh"
+                            sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/dev/deploy_to_test.sh"'
+                            sh "scp deploy_to_test.sh $MASTER_NODE:~"
+                            sh "ssh $MASTER_NODE chmod +x deploy_to_test.sh"
+                            sh "ssh $MASTER_NODE ./deploy_to_test.sh"
+                            sh "ssh $MASTER_NODE kubectl apply -f test_manifests/namespace.yml"
+                            sh "ssh $MASTER_NODE kubectl apply -f test_manifests/infrastructure/"
                             for (def service in services) {
-                                sh "ssh $MASTER_NODE kubectl apply -f test_deployments/microservices/${service}.yml"
-                            }
+                                sh "ssh $MASTER_NODE kubectl apply -f test_manifests/microservices/${service}.yml"             }
                         } else if (env.BRANCH_NAME == 'master') {
                             sh "ssh $MASTER_NODE kubectl apply -f prod_deployments/namespace.yml"
                             sh "ssh $MASTER_NODE kubectl apply -f prod_deployments/infrastructure/"
-                            def services = microservices + frontEndService
-                            for (def service in services) {
+                            for (def service in microservices) {
                                 sh "ssh $MASTER_NODE kubectl apply -f prod_deployments/microservices/${service}.yml"
                             }
                         }
