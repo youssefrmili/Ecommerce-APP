@@ -194,42 +194,36 @@ pipeline {
             }
         }
 
- stage('Deploy to Kubernetes') {
-            when {
-                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'dev') }
-            }
-            steps {
-                sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
-                    script {
-                        if (env.BRANCH_NAME == 'test') {
-                            sh "rm -f deploy_to_test.sh"
-                            sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/dev/deploy_to_test.sh"'
-                            sh "scp deploy_to_test.sh $MASTER_NODE:~"
-                            sh "ssh $MASTER_NODE chmod +x deploy_to_test.sh"
-                            sh "ssh $MASTER_NODE ./deploy_to_test.sh"
-                            sh "ssh $MASTER_NODE kubectl apply -f test_manifests/test_namespace.yml"
-                            sh "ssh $MASTER_NODE kubectl apply -f test_manifests/infrastructure/"
-                            for (def service in services) {
-                                sh "ssh $MASTER_NODE kubectl apply -f test_manifests/microservices/${service}.yml" 
-                            }
-                        } else if (env.BRANCH_NAME == 'master') {
-                            sh "rm -f deploy_to_prod.sh"
-                            sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/dev/deploy_to_prod.sh"'
-                            sh "scp deploy_to_prod.sh $MASTER_NODE:~"
-                            sh "ssh $MASTER_NODE chmod +x deploy_to_prod.sh"
-                            sh "ssh $MASTER_NODE ./deploy_to_prod.sh"
-                            sh "ssh $MASTER_NODE kubectl apply -f prod_manifests/prod_namespace.yml"
-                            sh "ssh $MASTER_NODE kubectl apply -f prod_manifests/infrastructure/"
-                            for (def service in services) {
-                                sh "ssh $MASTER_NODE kubectl apply -f prod_manifests/microservices/${service}.yml" 
-                            }
-                        }
-                    }
+stage('Deploy to Kubernetes') {
+    when {
+        expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'master') }
+    }
+    steps {
+        sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
+            script {
+                def deployenv = ''
+                if (env.BRANCH_NAME == 'test') {
+                    deployenv = 'test'
+                } else if (env.BRANCH_NAME == 'dev') {
+                    deployenv = 'test'
+                } else if (env.BRANCH_NAME == 'master') {
+                    deployenv = 'prod'
+                }
+
+                sh "rm -f deploy_to_${deployenv}.sh"
+                sh "wget \"https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/dev/deploy_to_${deployenv}.sh\""
+                sh "scp deploy_to_${deployenv}.sh \$MASTER_NODE:~"
+                sh "ssh $MASTER_NODE chmod +x deploy_to_${deployenv}.sh"
+                sh "ssh $MASTER_NODE ./deploy_to_${deployenv}.sh"
+                sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/namespace.yml"
+                sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/infrastructure/"
+                for (def service in services) {
+                    sh "ssh \$MASTER_NODE kubectl apply -f ${deployenv}_manifests/microservices/${service}.yml"
                 }
             }
         }
     }
-
+}
     post {
         always {
             archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt'
