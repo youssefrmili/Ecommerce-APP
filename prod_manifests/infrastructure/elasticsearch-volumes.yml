@@ -1,0 +1,27 @@
+# elasticsearch-pv.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-pv
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /mnt/data/elasticsearch
+
+---
+# elasticsearch-pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: es-pvc
+  namespace: prod
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+
