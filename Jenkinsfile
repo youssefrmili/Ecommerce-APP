@@ -190,34 +190,36 @@ pipeline {
             }
         }
 
-stage('Deploy to Kubernetes') {
-    when {
-        expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-    }
-    steps {
-        sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
-            script {
-                def deployenv = ''
-                if (env.BRANCH_NAME == 'test') {
-                    deployenv = 'test'
-                } else if (env.BRANCH_NAME == 'master') {
-                    deployenv = 'prod'
-                }
+        stage('Deploy to Kubernetes') {
+            when {
+                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
+            }
+            steps {
+                sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
+                    script {
+                        def deployenv = ''
+                        if (env.BRANCH_NAME == 'test') {
+                            deployenv = 'test'
+                        } else if (env.BRANCH_NAME == 'master') {
+                            deployenv = 'prod'
+                        }
 
-                sh "rm -f deploy_to_${deployenv}.sh"
-                sh "wget \"https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/deploy_to_${deployenv}.sh\""
-                sh "scp deploy_to_${deployenv}.sh \$MASTER_NODE:~"
-                sh "ssh $MASTER_NODE chmod +x deploy_to_${deployenv}.sh"
-                sh "ssh $MASTER_NODE ./deploy_to_${deployenv}.sh"
-                sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/namespace.yml"
-                sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/infrastructure/"
-                for (def service in services) {
-                    sh "ssh \$MASTER_NODE kubectl apply -f ${deployenv}_manifests/microservices/${service}.yml"
+                        sh "rm -f deploy_to_${deployenv}.sh"
+                        sh "wget \"https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/deploy_to_${deployenv}.sh\""
+                        sh "scp deploy_to_${deployenv}.sh $MASTER_NODE:~"
+                        sh "ssh $MASTER_NODE chmod +x deploy_to_${deployenv}.sh"
+                        sh "ssh $MASTER_NODE ./deploy_to_${deployenv}.sh"
+                        sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/namespace.yml"
+                        sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/infrastructure/"
+                        for (def service in services) {
+                            sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/microservices/${service}.yml"
+                        }
+                    }
                 }
             }
         }
     }
-}
+
     post {
         always {
             archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt'
@@ -229,7 +231,7 @@ stage('Deploy to Kubernetes') {
                       "Result: ${currentBuild.result}",
                 to: 'yousseff.rmili@gmail.com',  // Change to your email address
                 attachmentsPattern: '**/trivy-*.txt, **/reports/*.html, **/trufflehog.txt'
-         }
-      }
-   }
+        }
+    }
 }
+
