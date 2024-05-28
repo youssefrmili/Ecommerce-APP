@@ -201,7 +201,7 @@ pipeline {
             steps {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
                     script {
-                        if (env.BRANCH_NAME == 'dev') {
+                        if (env.BRANCH_NAME == 'test') {
                             sh "rm -f deploy_to_test.sh"
                             sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/dev/deploy_to_test.sh"'
                             sh "scp deploy_to_test.sh $MASTER_NODE:~"
