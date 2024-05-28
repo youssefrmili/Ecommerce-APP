@@ -37,7 +37,6 @@ pipeline {
             }
             steps {
                 script {
-                    def services = microservices + frontEndService
                     for (def service in services) {
                         dir(service) {
                             def reportFile = "dependency-check-report-${service}.html"
@@ -98,7 +97,6 @@ pipeline {
             }
             steps {
                 script {
-                    def services = microservices + frontEndService
                     for (def service in services) {
                         dir(service) {
                             if (service == frontEndService) {
@@ -135,7 +133,6 @@ pipeline {
             }
             steps {
                 script {
-                    def services = microservices + frontEndService
                     for (def service in services) {
                         dir(service) {
                             if (env.BRANCH_NAME == 'test') {
@@ -157,7 +154,6 @@ pipeline {
             }
             steps {
                 script {
-                    def services = microservices + frontEndService
                     for (def service in services) {
                         def trivyReportFile = "trivy-${service}.txt"
                         if (env.BRANCH_NAME == 'test') {
@@ -178,7 +174,6 @@ pipeline {
             }
             steps {
                 script {
-                    def services = microservices + frontEndService
                     for (def service in services) {
                         if (env.BRANCH_NAME == 'test') {
                             sh "docker push ${DOCKERHUB_USERNAME}/${service}_test:latest"
@@ -197,7 +192,7 @@ pipeline {
 
 stage('Deploy to Kubernetes') {
     when {
-        expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'master') }
+        expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
     }
     steps {
         sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
