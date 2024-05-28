@@ -29,4 +29,4 @@ curl -o $TARGET_DIR/microservices/ecomm-ui.yml https://raw.githubusercontent.com
 curl -o $TARGET_DIR/microservices/ecomm-web.yml https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/manifests/microservices/ecomm-web.yml
 
 # Download namespace.yml
-curl -o $TARGET_DIR/namespace.yml https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/manifests/namespace.yml
+curl -o $TARGET_DIR/namespace.yml https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/manifests/test_namespace.yml
