@@ -204,8 +204,6 @@ stage('Deploy to Kubernetes') {
                 def deployenv = ''
                 if (env.BRANCH_NAME == 'test') {
                     deployenv = 'test'
-                } else if (env.BRANCH_NAME == 'dev') {
-                    deployenv = 'test'
                 } else if (env.BRANCH_NAME == 'master') {
                     deployenv = 'prod'
                 }
