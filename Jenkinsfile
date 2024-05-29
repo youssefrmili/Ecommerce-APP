@@ -195,9 +195,9 @@ pipeline {
             }
         }
 
-         stage('Kube-bench Scan') {
+        stage('Kube-bench Scan') {
             when {
-                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'dev') }
+                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
             }
             steps {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
@@ -208,7 +208,7 @@ pipeline {
 
         stage('Kubescope Scan') {
             when {
-                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'dev') }
+                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
             }
             steps {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
@@ -219,7 +219,7 @@ pipeline {
 
         stage('Get YAML Files') {
             when {
-                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'dev') }
+                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
             }
             steps {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
@@ -236,7 +236,7 @@ pipeline {
 
         stage('Scan YAML Files') {
             when {
-                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'dev') }
+                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
             }
             steps {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
@@ -252,7 +252,7 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             when {
-                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'dev') }
+                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
             }
             steps {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
