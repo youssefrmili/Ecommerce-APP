@@ -250,8 +250,8 @@ pipeline {
                         } else if (env.BRANCH_NAME == 'master') {
                             deployenv = 'prod'
                         }
-                        sh "ssh rm -rf kubescape-infrastructure-${deployenv}.txt""
-                        sh "ssh rm -rf kubescape-microservies-${deployenv}.txt""
+                        sh "ssh rm -rf kubescape-infrastructure-${deployenv}.txt"
+                        sh "ssh rm -rf kubescape-microservies-${deployenv}.txt"
                         sh "ssh $MASTER_NODE sudo kubescape scan ${deployenv}_manifests/infrastructure/*.yml > kubescape-infrastructure-${deployenv}.txt"
                         sh "ssh $MASTER_NODE sudo kubescape scan ${deployenv}_manifests/microservices/*.yml > kubescape-microservices-${deployenv}.txt"
                     }
