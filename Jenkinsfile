@@ -242,7 +242,7 @@ pipeline {
                 }
             }
 
-        stage('Scan YAML Files with Kubescape') {
+        stage('Scan YAML Files') {
             when {
                 expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
             }
