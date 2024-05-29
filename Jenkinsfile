@@ -225,13 +225,6 @@ pipeline {
                 steps {
                     sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
                         script {
-                            def deployenv = ''
-                            if (env.BRANCH_NAME == 'test') {
-                                deployenv = 'test'
-                            } else if (env.BRANCH_NAME == 'master') {
-                                deployenv = 'prod'
-                            }
-            
                             sh "rm -f deploy_to_${deployenv}.sh"
                             sh "wget \"https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/deploy_to_${deployenv}.sh\""
                             sh "scp deploy_to_${deployenv}.sh $MASTER_NODE:~"
@@ -249,12 +242,6 @@ pipeline {
             steps {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
                     script {
-                        def deployenv = ''
-                        if (env.BRANCH_NAME == 'test') {
-                            deployenv = 'test'
-                        } else if (env.BRANCH_NAME == 'master') {
-                            deployenv = 'prod'
-                        }
                         sh "ssh rm -f kubescape-infrastructure-${deployenv}.txt"
                         sh "ssh rm -f kubescape-microservies-${deployenv}.txt"
                         sh "ssh $MASTER_NODE sudo kubescape scan ${deployenv}_manifests/infrastructure/*.yml > kubescape-infrastructure-${deployenv}.txt"
