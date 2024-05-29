@@ -1,7 +1,12 @@
 def microservices = ['ecomm-web']
 def frontEndService = 'ecomm-ui'
 def services = microservices + frontEndService
-
+def deployenv = ''
+    if (env.BRANCH_NAME == 'test') {
+    deployenv = 'test'
+    } else if (env.BRANCH_NAME == 'master') {
+    deployenv = 'prod'
+    }
 pipeline {
     agent any
 
@@ -196,7 +201,7 @@ pipeline {
             }
             steps {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
-                    sh "ssh rm -rf kube-bench-${env.BRANCH_NAME}.txt"
+                    sh "ssh rm -f kube-bench-${env.BRANCH_NAME}.txt"
                     sh "ssh $MASTER_NODE sudo kube-bench > kube-bench-${env.BRANCH_NAME}.txt"
                 }
             }
@@ -208,7 +213,7 @@ pipeline {
             }
             steps {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
-                    sh "ssh rm -rf kube-scape-mitre-${env.BRANCH_NAME}.txt"
+                    sh "ssh rm -f kube-scape-mitre-${env.BRANCH_NAME}.txt"
                     sh "ssh $MASTER_NODE sudo kubescape framework mitre > kubescape-mitre-${env.BRANCH_NAME}.txt"
                 }
             }
@@ -250,8 +255,8 @@ pipeline {
                         } else if (env.BRANCH_NAME == 'master') {
                             deployenv = 'prod'
                         }
-                        sh "ssh rm -rf kubescape-infrastructure-${deployenv}.txt"
-                        sh "ssh rm -rf kubescape-microservies-${deployenv}.txt"
+                        sh "ssh rm -f kubescape-infrastructure-${deployenv}.txt"
+                        sh "ssh rm -f kubescape-microservies-${deployenv}.txt"
                         sh "ssh $MASTER_NODE sudo kubescape scan ${deployenv}_manifests/infrastructure/*.yml > kubescape-infrastructure-${deployenv}.txt"
                         sh "ssh $MASTER_NODE sudo kubescape scan ${deployenv}_manifests/microservices/*.yml > kubescape-microservices-${deployenv}.txt"
                     }
@@ -266,17 +271,10 @@ pipeline {
             steps {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
                     script {
-                        def deployenv = ''
-                        if (env.BRANCH_NAME == 'test') {
-                            deployenv = 'test'
-                        } else if (env.BRANCH_NAME == 'master') {
-                            deployenv = 'prod'
-                        }
-
-                        sh "rm -f deploy_to_${deployenv}.sh"
-                        sh "wget \"https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/deploy_to_${deployenv}.sh\""
-                        sh "scp deploy_to_${deployenv}.sh $MASTER_NODE:~"
-                        sh "ssh $MASTER_NODE chmod +x deploy_to_${deployenv}.sh"
+                        sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/namespace.yml"
+                        sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/infrastructure/"
+                        for (def service in services) {
+                            sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/microservices/${service}.yml"
                     }
                 }
             }
