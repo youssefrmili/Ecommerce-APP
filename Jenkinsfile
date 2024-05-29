@@ -195,57 +195,56 @@ pipeline {
             }
         }
 
-        stage('Scan Cluster vs CIS') {
+         stage('Kube-bench Scan') {
             when {
-                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
+                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'dev') }
             }
             steps {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
-                    sh "ssh rm -f kube-bench-${env.BRANCH_NAME}.txt"
-                    sh "ssh $MASTER_NODE sudo kube-bench > kube-bench-${env.BRANCH_NAME}.txt"
+                    sh "ssh $MASTER_NODE 'kube-bench > kubebench_CIS_${env.BRANCH_NAME}.txt'"
                 }
             }
         }
 
-        stage('Scan Cluster vs MITRE') {
+        stage('Kubescope Scan') {
             when {
-                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
+                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'dev') }
             }
             steps {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
-                    sh "ssh rm -f kube-scape-mitre-${env.BRANCH_NAME}.txt"
-                    sh "ssh $MASTER_NODE sudo kubescape framework mitre > kubescape-mitre-${env.BRANCH_NAME}.txt"
+                    sh "ssh $MASTER_NODE 'kubescape scan framework mitre > kubescape_mitre_${env.BRANCH_NAME}.txt'"
                 }
             }
         }
-        stage('Get Deployment Scripts') {
-                when {
-                    expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-                }
-                steps {
-                    sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
-                        script {
-                            sh "rm -f deploy_to_${deployenv}.sh"
-                            sh "wget \"https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/deploy_to_${deployenv}.sh\""
-                            sh "scp deploy_to_${deployenv}.sh $MASTER_NODE:~"
-                            sh "ssh $MASTER_NODE chmod +x deploy_to_${deployenv}.sh"
-                            sh "ssh $MASTER_NODE ./deploy_to_${deployenv}.sh"
-                        }
-                    }
-                }
-            }
 
-        stage('Scan YAML Files') {
+        stage('Get YAML Files') {
             when {
-                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
+                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'dev') }
             }
             steps {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
                     script {
-                        sh "ssh rm -f kubescape-infrastructure-${deployenv}.txt"
-                        sh "ssh rm -f kubescape-microservies-${deployenv}.txt"
-                        sh "ssh $MASTER_NODE sudo kubescape scan ${deployenv}_manifests/infrastructure/*.yml > kubescape-infrastructure-${deployenv}.txt"
-                        sh "ssh $MASTER_NODE sudo kubescape scan ${deployenv}_manifests/microservices/*.yml > kubescape-microservices-${deployenv}.txt"
+                        sh "rm -f deploy_to_${deployenv}.sh"
+                        sh "wget \"https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/deploy_to_${deployenv}.sh\""
+                        sh "scp deploy_to_${deployenv}.sh $MASTER_NODE:~"
+                        sh "ssh $MASTER_NODE chmod +x deploy_to_${deployenv}.sh"
+                        sh "ssh $MASTER_NODE ./deploy_to_${deployenv}.sh"
+                    }
+                }
+            }
+        }
+
+        stage('Scan YAML Files') {
+            when {
+                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'dev') }
+            }
+            steps {
+                sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
+                    script {
+                        sh "ssh $MASTER_NODE rm -f kubescape_infrastructure_${deployenv}.txt"
+                        sh "ssh $MASTER_NODE rm -f kubescape_microservices_${deployenv}.txt"
+                        sh "ssh $MASTER_NODE 'kubescape scan ${deployenv}_manifests/infrastructure/*.yml > kubescape_infrastructure_${deployenv}.txt'"
+                        sh "ssh $MASTER_NODE 'kubescape scan ${deployenv}_manifests/microservices/*.yml > kubescape_microservices_${deployenv}.txt'"
                     }
                 }
             }
@@ -253,32 +252,33 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             when {
-                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
+                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'dev') }
             }
             steps {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
                     script {
                         sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/namespace.yml"
                         sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/infrastructure/"
-                        for (def service in services) {
+                        for (service in services) {
                             sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/microservices/${service}.yml"
+                        }
                     }
                 }
             }
         }
     }
+
+    post {
+        always {
+            archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt, **/kubescape-*.txt'
+            emailext attachLog: true,
+                subject: "'${currentBuild.result}'",
+                body: "Project: ${env.JOB_NAME}<br/>" +
+                      "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                      "URL: ${env.BUILD_URL}<br/>" +
+                      "Result: ${currentBuild.result}",
+                to: 'yousseff.rmili@gmail.com',  // Change to your email address
+                attachmentsPattern: '**/trivy-*.txt, **/reports/*.html, **/trufflehog.txt, **/kubescape-*.txt'
+        }
+    }
 }
-post {
-    always {
-        archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt, **/kubescape-*.txt'
-        emailext attachLog: true,
-            subject: "'${currentBuild.result}'",
-            body: "Project: ${env.JOB_NAME}<br/>" +
-                  "Build Number: ${env.BUILD_NUMBER}<br/>" +
-                  "URL: ${env.BUILD_URL}<br/>" +
-                  "Result: ${currentBuild.result}",
-            to: 'yousseff.rmili@gmail.com',  // Change to your email address
-            attachmentsPattern: '**/trivy-*.txt, **/reports/*.html, **/trufflehog.txt, **/kubescape-*.txt'
-      }
-   }
-} 
