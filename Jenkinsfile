@@ -196,6 +196,7 @@ pipeline {
             }
             steps {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
+                    sh "ssh rm -rf kube-bench-${env.BRANCH_NAME}.txt"
                     sh "ssh $MASTER_NODE sudo kube-bench > kube-bench-${env.BRANCH_NAME}.txt"
                 }
             }
@@ -207,6 +208,7 @@ pipeline {
             }
             steps {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
+                    sh "ssh rm -rf kube-scape-mitre-${env.BRANCH_NAME}.txt"
                     sh "ssh $MASTER_NODE sudo kubescape framework mitre > kubescape-mitre-${env.BRANCH_NAME}.txt"
                 }
             }
@@ -248,7 +250,8 @@ pipeline {
                         } else if (env.BRANCH_NAME == 'master') {
                             deployenv = 'prod'
                         }
-
+                        sh "ssh rm -rf kubescape-infrastructure-${deployenv}.txt""
+                        sh "ssh rm -rf kubescape-microservies-${deployenv}.txt""
                         sh "ssh $MASTER_NODE sudo kubescape scan ${deployenv}_manifests/infrastructure/*.yml > kubescape-infrastructure-${deployenv}.txt"
                         sh "ssh $MASTER_NODE sudo kubescape scan ${deployenv}_manifests/microservices/*.yml > kubescape-microservices-${deployenv}.txt"
                     }
