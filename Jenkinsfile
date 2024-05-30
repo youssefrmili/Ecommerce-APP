@@ -99,12 +99,10 @@ pipeline {
             }
             steps {
                 script {
-                    for (def service in services) {
+                    for (def service in microservices) {
                         dir(service) {
-                            if (service == microservices) {
                                 withSonarQubeEnv('sonarqube') {
                                     sh 'mvn clean package sonar:sonar'
-                                }
                             }
                         }
                     }
