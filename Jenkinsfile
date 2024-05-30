@@ -104,11 +104,7 @@ pipeline {
                 script {
                     for (def service in services) {
                         dir(service) {
-                            if (service == frontEndService) {
-                                withSonarQubeEnv('sonarqube') {
-                                    sh "${SCANNER_HOME}/bin/sonar-scanner" // Execute SonarQube scanner for frontend service
-                                }
-                            } else {
+                            if (service == microservices) {
                                 withSonarQubeEnv('sonarqube') {
                                     sh 'mvn clean package sonar:sonar'
                                 }
