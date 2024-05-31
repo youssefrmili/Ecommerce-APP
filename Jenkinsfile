@@ -262,14 +262,7 @@ pipeline {
     post {
         always {
             archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt, **/kubescape-*.txt'
-            emailext attachLog: true,
-                subject: "'${currentBuild.result}'",
-                body: "Project: ${env.JOB_NAME}<br/>" +
-                      "Build Number: ${env.BUILD_NUMBER}<br/>" +
-                      "URL: ${env.BUILD_URL}<br/>" +
-                      "Result: ${currentBuild.result}",
-                to: 'yousseff.rmili@gmail.com',  // Change to your email address
-                attachmentsPattern: '**/trivy-*.txt, **/reports/*.html, **/trufflehog.txt, **/kubescape-*.txt'
+    
         }
     }
 }
