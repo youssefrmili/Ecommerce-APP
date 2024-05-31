@@ -261,7 +261,7 @@ pipeline {
 
     post {
         always {
-            archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt, **/kubescape-*.txt'
+            archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt'
     
         }
     }
