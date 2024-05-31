@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: front
-          image: youssefrm/ecomm-front_dev
+          image: youssefrm/ecomm-front_test
           ports:
             - containerPort: 80
 
