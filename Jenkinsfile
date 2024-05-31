@@ -17,16 +17,17 @@ pipeline {
                 ])
             }
         }
-        stage('up') {
+        stage('Send reports to Slack') {
             steps {
-                slackUploadFile filePath: '**/Jenkinsfile', '**/trivy-*.txt', initialComment: 'Here'
+                slackUploadFile filePath: '**/Jenkinsfile', initialComment: 'Here is the Jenkinsfile'
+                slackUploadFile filePath: '**/trivy-*.txt', initialComment: 'Here are the Trivy reports'
             }
         }
     }
 
     post {
         always {
-            archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt, **/kubescape-*.txt'
+            archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt'
         }
     }
 }
