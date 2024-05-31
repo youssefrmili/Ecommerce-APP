@@ -18,7 +18,7 @@ curl -o $TARGET_DIR/infrastructure/postgres.yml https://raw.githubusercontent.co
 curl -o $TARGET_DIR/microservices/ecomm-cart.yml https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/prod_manifests/microservices/ecomm-cart.yml
 curl -o $TARGET_DIR/microservices/ecomm-order.yml https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/prod_manifests/microservices/ecomm-order.yml
 curl -o $TARGET_DIR/microservices/ecomm-product.yml https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/prod_manifests/microservices/ecomm-product.yml
-curl -o $TARGET_DIR/microservices/ecomm-ui.yml https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/prod_manifests/microservices/ecomm-ui.yml
-curl -o $TARGET_DIR/microservices/ecomm-web.yml https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/prod_manifests/microservices/ecomm-web.yml
+curl -o $TARGET_DIR/microservices/ecomm-front.yml https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/prod_manifests/microservices/ecomm-front.yml
+curl -o $TARGET_DIR/microservices/ecomm-user.yml https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/prod_manifests/microservices/ecomm-user.yml
 
 curl -o $TARGET_DIR/namespace.yml https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/prod_manifests/namespace.yml
