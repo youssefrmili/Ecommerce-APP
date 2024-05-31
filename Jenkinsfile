@@ -2,11 +2,12 @@ def microservices = ['ecomm-web']
 def frontEndService = 'ecomm-ui'
 def services = microservices + frontEndService
 def deployenv = ''
-    if (env.BRANCH_NAME == 'test') {
+if (env.BRANCH_NAME == 'test') {
     deployenv = 'test'
-    } else if (env.BRANCH_NAME == 'master') {
+} else if (env.BRANCH_NAME == 'master') {
     deployenv = 'prod'
-    }
+}
+
 pipeline {
     agent any
 
@@ -257,12 +258,17 @@ pipeline {
                 }
             }
         }
+
+        stage('Send reports to Slack') {
+            steps {
+                slackUploadFile filePath: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt', initialComment: 'Check Reports!!'
+            }
+        }
     }
 
     post {
         always {
             archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt'
-    
         }
     }
 }
