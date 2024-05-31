@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: user
-          image: youssefrm/ecomm-user_test
+          image: youssefrm/ecomm-user_prod
           ports:
             - containerPort: 8080
           envFrom:
