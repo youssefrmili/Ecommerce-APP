@@ -19,7 +19,7 @@ pipeline {
         }
         stage('up') {
             steps {
-                slackUploadFile filePath: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt, **/kubescape-*.txt', initialComment: 'Here'
+                slackUploadFile filePath: '**/Jenkinsfile', '**/trivy-*.txt', initialComment: 'Here'
             }
         }
     }
