@@ -25,7 +25,8 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: frontend
+  name: front
+  namespace: test
 spec:
   type: NodePort
   ports:
