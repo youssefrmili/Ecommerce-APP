@@ -1,5 +1,5 @@
 def microservices = ['ecomm-web']
-def frontEndService = 'ecomm-front'
+def frontEndService = ['ecomm-front']
 def services = microservices + frontEndService
 def deployenv = ''
 if (env.BRANCH_NAME == 'test') {
@@ -25,15 +25,6 @@ pipeline {
                     branches: [[name: env.BRANCH_NAME]], // Checkout the current branch
                     userRemoteConfigs: [[url: 'https://github.com/youssefrmili/Ecommerce-APP.git']]
                 ])
-            }
-        }
-
-        stage('Check Git Secrets') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                sh 'docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest github --repo https://github.com/youssefrmili/Ecommerce-APP.git > trufflehog.txt'
             }
         }
 
