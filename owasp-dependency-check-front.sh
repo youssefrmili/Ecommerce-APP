@@ -1,6 +1,6 @@
 #!/bin/sh
 
-OWASPDC_DIRECTORY=$HOME/workspace/**
+OWASPDC_DIRECTORY=/var/lib/jenkins/workspace/**
 DATA_DIRECTORY="$OWASPDC_DIRECTORY/data"
 REPORT_DIRECTORY="$OWASPDC_DIRECTORY/reports"
 
