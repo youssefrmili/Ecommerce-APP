@@ -1,5 +1,5 @@
 def microservices = ['ecomm-web']
-def frontEndService = ['ecomm-ui']
+def frontendservice = ['ecomm-ui']
 def services = microservices + frontEndService
 def deployenv = ''
 if (env.BRANCH_NAME == 'test') {
@@ -46,7 +46,7 @@ pipeline {
                     for (def service in services) {
                         dir(service) {
                             def reportFile = "dependency-check-report-${service}.html"
-                            if (service == frontEndService) {
+                            if (service == frontendservice) {
                                 sh 'rm -f owasp-dependency-check-front.sh'
                                 sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check-front.sh"'
                                 sh 'chmod +x owasp-dependency-check-front.sh'
