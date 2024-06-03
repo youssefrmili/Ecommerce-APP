@@ -48,7 +48,6 @@ pipeline {
                                 sh 'chmod +x owasp-dependency-check-front.sh'
                                 sh "./owasp-dependency-check-front.sh"
                             }
-                            sh "sudo mv /var/lib/jenkins/workspace/${env.BRANCH_NAME}/reports/dependency-check-report.html /var/lib/jenkins/workspace/${env.BRANCH_NAME}/reports/${reportFile}"
                         }
                     }
                 }
