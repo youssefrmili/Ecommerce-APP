@@ -46,16 +46,16 @@ pipeline {
                     for (def service in services) {
                         dir(service) {
                             def reportFile = "dependency-check-report-${service}.html"
-                            if (service == frontendservice) {
-                                sh 'rm -f owasp-dependency-check-front.sh'
-                                sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check-front.sh"'
-                                sh 'chmod +x owasp-dependency-check-front.sh'
-                                sh "./owasp-dependency-check-front.sh"
-                            } else {
+                            if (service in microservices) {
                                 sh 'rm -f owasp-dependency-check.sh'
                                 sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check.sh"'
                                 sh 'chmod +x owasp-dependency-check.sh'
                                 sh "./owasp-dependency-check.sh"
+                            } else { 
+                                sh 'rm -f owasp-dependency-check-front.sh'
+                                sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check-front.sh"'
+                                sh 'chmod +x owasp-dependency-check-front.sh'
+                                sh "./owasp-dependency-check-front.sh"
                             }
                             sh "mv /var/lib/jenkins/workspace/**/reports/dependency-check-report.html /var/lib/jenkins/workspace/**/reports/${reportFile}"
                         }
