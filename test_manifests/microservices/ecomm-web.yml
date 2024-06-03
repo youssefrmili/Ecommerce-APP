@@ -2,21 +2,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: user
+  name: web
   namespace: test
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: user
+      app: web
   template:
     metadata:
       labels:
-        app: user
+        app: web
     spec:
       containers:
-        - name: user
-          image: youssefrm/ecomm-user_test
+        - name: web
+          image: youssefrm/ecomm-web_test
           ports:
             - containerPort: 8080
           envFrom:
@@ -27,12 +27,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: user
+  name: web
   namespace: test
 spec:
   type: ClusterIP
   selector:
-    app: user
+    app: web
   ports:
     - port: 8080
       targetPort: 8080
