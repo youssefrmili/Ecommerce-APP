@@ -22,6 +22,6 @@ docker run --rm \
     owasp/dependency-check \
     --scan /ecomm-ui/package-lock.json \
     --exclude "dependency-check-bin" \
-    --format HTML \
+    --format "HTML" \
     --project "Frontend OWASP Dependency Check Project" \
     --out /report
