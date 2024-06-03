@@ -1,0 +1,19 @@
+{
+  "name": "Sample Product1",
+  "desc": "",
+  "brand": {
+    "name": "nebulapress",
+    "category": "books"
+  },
+  "category": 3,
+  "variants": [
+    {
+      "features": { "weight": "2 kg" },
+      "price": 120,
+      "sku": "NEBU-BOO-2528",
+      "quantity": 28
+    }
+  ],
+  "features": [],
+  "description": "this is the greatest book in the history of mankind"
+}
