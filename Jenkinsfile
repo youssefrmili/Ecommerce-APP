@@ -272,11 +272,8 @@ pipeline {
     }
 
     post {
-        always {
-            script {
-                  if  (env.BRANCH_NAME == 'dev') or (env.BRANCH_NAME == 'test') or (env.BRANCH_NAME == 'master') 
-              }            
-  
+        always ( if  (env.BRANCH_NAME == 'dev') or (env.BRANCH_NAME == 'test') or (env.BRANCH_NAME == 'master')) {
+                
             archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt'
         }
     }
