@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Remove the postgres-data directory
-echo "Removing existing postgres-data directory..."
+echo "Removing existing postgres-data directory...."
 #rm -rf ./ecomm-db/postgres-data
 
 # Stopping all containers
