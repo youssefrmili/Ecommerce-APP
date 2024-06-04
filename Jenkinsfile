@@ -278,4 +278,3 @@ pipeline {
             archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt'
         }
     }
-}
