@@ -1,4 +1,4 @@
-def microservices = ['ecomm-cart','ecomm-order','ecomm-product','ecomm-web','ecomm-user']
+def microservices = ['ecomm-cart','ecomm-order','ecomm-product','ecomm-web']
 def frontendservice = ['ecomm-ui','ecomm-front']
 def services = microservices + frontendservice
 def deployenv = ''
