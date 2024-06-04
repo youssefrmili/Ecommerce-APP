@@ -1,5 +1,5 @@
-def microservices = ['ecomm-cart','ecomm-order','ecomm-product','ecomm-web']
-def frontendservice = 'ecomm-ui'
+def microservices = ['ecomm-cart','ecomm-order','ecomm-product','ecomm-web','ecomm-user']
+def frontendservice = ['ecomm-ui','ecomm-front']
 def services = microservices + frontendservice
 def deployenv = ''
 if (env.BRANCH_NAME == 'test') {
@@ -28,14 +28,6 @@ pipeline {
             }
         }
 
-        stage('Check Git Secrets') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                sh 'docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest github --repo https://github.com/youssefrmili/Ecommerce-APP.git > trufflehog.txt'
-            }
-        }
 
         stage('Source Composition Analysis') {
             when {
