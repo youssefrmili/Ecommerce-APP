@@ -1,5 +1,5 @@
 def microservices = ['ecomm-web']
-def frontendservice = ['ecomm-ui','ecomm-front']
+def frontendservice = ['ecomm-front']
 def services = microservices + frontendservice
 def deployenv = ''
 if (env.BRANCH_NAME == 'test') {
