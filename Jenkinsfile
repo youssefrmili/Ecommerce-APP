@@ -260,6 +260,9 @@ pipeline {
         }
 
         stage('Send reports to Slack') {
+            when {
+                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
+            }
             steps {
                 slackUploadFile filePath: '**/trufflehog.txt',  initialComment: 'Check TruffleHog Reports!!'
                 slackUploadFile filePath: '**/reports/*.html', initialComment: 'Check ODC Reports!!'
