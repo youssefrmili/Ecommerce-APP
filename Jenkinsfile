@@ -270,17 +270,12 @@ pipeline {
             }
         }
     }
-        script {
-                when {
-                    expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-             post {
-                always {
-            
-                  archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt'
+    post {
+        always {
+            script { 
+                if ((env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master'))
+            archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt'
             }
         }
-                }
-            
-    
     }
 }
