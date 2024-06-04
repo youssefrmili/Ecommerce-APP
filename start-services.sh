@@ -14,5 +14,5 @@ docker-compose build
 
 
 # Start Docker Compose services
-echo "Starting Docker Compose services..."
+echo "Starting Docker Compose servicess..."
 docker-compose up -d
