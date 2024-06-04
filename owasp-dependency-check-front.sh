@@ -1,6 +1,6 @@
 #!/bin/sh
 
-OWASPDC_DIRECTORY=$HOME/workspace/**
+OWASPDC_DIRECTORY=/var/lib/jenkins/workspace/**
 DATA_DIRECTORY="$OWASPDC_DIRECTORY/data"
 REPORT_DIRECTORY="$OWASPDC_DIRECTORY/reports"
 
@@ -16,11 +16,11 @@ fi
 # Make sure we are using the latest version
 
 docker run --rm \
-    --volume $(pwd):/ecomm-ui \
+    --volume $(pwd):/ecomm-front \
     --volume "$DATA_DIRECTORY":/usr/share/dependency-check/data \
     --volume "$REPORT_DIRECTORY":/report \
     owasp/dependency-check \
-    --scan /ecomm-ui/package-lock.json \
+    --scan /ecomm-front/package-lock.json \
     --exclude "dependency-check-bin" \
     --format "HTML" \
     --project "Frontend OWASP Dependency Check Project" \
