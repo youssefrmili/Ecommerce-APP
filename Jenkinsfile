@@ -51,7 +51,7 @@ pipeline {
                                 sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check.sh"'
                                 sh 'chmod +x owasp-dependency-check.sh'
                                 sh "./owasp-dependency-check.sh"
-                            } else if (service == frontendservice) { 
+                            } else if (service in frontendservice) { 
                                 sh 'rm -f owasp-dependency-check-front.sh'
                                 sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check-front.sh"'
                                 sh 'chmod +x owasp-dependency-check-front.sh'
