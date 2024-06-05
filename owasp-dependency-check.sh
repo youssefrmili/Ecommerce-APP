@@ -14,6 +14,7 @@ fi
 
 # Make sure we are using the latest version
 docker run --rm \
+    --user 129:137 \
     --volume "`pwd`":/src \
     --volume "$DATA_DIRECTORY":/usr/share/dependency-check/data \
     --volume "$REPORT_DIRECTORY":/report \
