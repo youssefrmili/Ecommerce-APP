@@ -266,7 +266,7 @@ pipeline {
             }
             steps {
                 slackUploadFile filePath: '**/trufflehog.txt',  initialComment: 'Check TruffleHog Reports!!'
-                slackUploadFile filePath: '**/reports/*.html', initialComment: 'Check ODC Reports!!'
+                slackUploadFile filePath: '**/dependency-check-report-*.html', initialComment: 'Check ODC Reports!!'
                 slackUploadFile filePath: '**/trivy-*.txt', initialComment: 'Check Trivy Reports!!'
             }
         }
@@ -275,7 +275,7 @@ pipeline {
         always {
             script { 
                 if ((env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master'))
-            archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt'
+            archiveArtifacts artifacts: '**/trufflehog.txt, **/reports*.html, **/trivy-*.txt'
             }
         }
     }
