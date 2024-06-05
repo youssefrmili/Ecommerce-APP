@@ -62,7 +62,7 @@ pipeline {
                 slackUploadFile filePath: '/var/lib/jenkins/OWASP-Dependency-Check/reports/*.html', initialComment: 'Check ODC Reports!!'
                 }
             }
-      
+       }
         stage('Build') {
             when {
                 expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
