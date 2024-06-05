@@ -258,15 +258,7 @@ pipeline {
             }
         }
 
-        stage('Send reports to Slack') {
-            steps {
-                slackUploadFile filePath: '**/trufflehog.txt',  initialComment: 'Check TruffleHog Reports!!'
-                slackUploadFile filePath: '**/reports/*.html', initialComment: 'Check ODC Reports!!'
-                slackUploadFile filePath: '**/trivy-*.txt', initialComment: 'Check Trivy Reports!!'
-            }
-        }
-    }
-
+ 
     post {
         always {
             script { 
