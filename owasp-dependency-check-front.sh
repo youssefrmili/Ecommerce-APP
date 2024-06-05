@@ -20,7 +20,7 @@ docker run --rm \
     --volume $(pwd):/ecomm-front \
     --volume "$DATA_DIRECTORY":/usr/share/dependency-check/data \
     --volume "$REPORT_DIRECTORY":/report \
-    owasp/dependency-check \
+    owasp/dependency-check:latest \
     --scan /ecomm-front/package-lock.json \
     --exclude "dependency-check-bin" \
     --format "HTML" \
