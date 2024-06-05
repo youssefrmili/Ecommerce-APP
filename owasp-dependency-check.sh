@@ -3,7 +3,6 @@
 OWASPDC_DIRECTORY=$HOME/workspace/**/OWASP-Dependency-Check
 DATA_DIRECTORY="$OWASPDC_DIRECTORY/data"
 REPORT_DIRECTORY="$OWASPDC_DIRECTORY/reports"
-chown -R OWASP-Dependency-Check/
 if [ ! -d "$DATA_DIRECTORY" ]; then
     echo "Initially creating persistent directories"
     mkdir -p "$DATA_DIRECTORY"
