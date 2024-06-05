@@ -38,33 +38,6 @@ pipeline {
             }
         }
 
-        stage('Source Composition Analysis') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                script {
-                    for (def service in services) {
-                        dir(service) {
-                            def reportFile = "dependency-check-report-${service}.html"
-                            if (service in microservices) {
-                                sh 'rm -f owasp-dependency-check.sh'
-                                sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check.sh"'
-                                sh 'chmod +x owasp-dependency-check.sh'
-                                sh "./owasp-dependency-check.sh"
-                            } else if (service in frontendservice) { 
-                                sh 'rm -f owasp-dependency-check-front.sh'
-                                sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check-front.sh"'
-                                sh 'chmod +x owasp-dependency-check-front.sh'
-                                sh "./owasp-dependency-check-front.sh"
-                            }
-                            sh "mv /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html /var/lib/jenkins/OWASP-Dependency-Check/reports/reports/${reportFile}"
-                        }
-                    }
-                }
-            }
-        }
-
         stage('Build') {
             when {
                 expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
@@ -266,7 +239,6 @@ pipeline {
             }
             steps {
                 slackUploadFile filePath: '**/trufflehog.txt',  initialComment: 'Check TruffleHog Reports!!'
-                slackUploadFile filePath: '**/dependency-check-report-*.html', initialComment: 'Check ODC Reports!!'
                 slackUploadFile filePath: '**/trivy-*.txt', initialComment: 'Check Trivy Reports!!'
             }
         }
