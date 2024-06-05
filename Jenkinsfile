@@ -44,7 +44,8 @@ pipeline {
                                 sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check.sh"'
                                 sh 'chmod +x owasp-dependency-check.sh'
                                 sh "bash owasp-dependency-check.sh"
-                                sh "sudo mv /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html /var/lib/jenkins/workspace/**/${reportFile}"
+                                sh "sudo cp /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html /var/lib/jenkins/workspace/**/${reportFile}"
+                                sh "sudo rm /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html"
                             } else if (service == frontendservice) { 
                                 sh 'rm -f owasp-dependency-check-front.sh || true '
                                 sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check-front.sh"'
