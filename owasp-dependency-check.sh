@@ -10,8 +10,6 @@ if [ ! -d "$DATA_DIRECTORY" ]; then
 
     mkdir -p "$REPORT_DIRECTORY"
     chmod -R 777 "$REPORT_DIRECTORY"
-    chown -R jenkins:jenkins OWASP-Dependency-Check/
-
 fi
 
 # Make sure we are using the latest version
