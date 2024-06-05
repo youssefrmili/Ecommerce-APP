@@ -22,7 +22,7 @@ docker run --rm \
     --volume "$REPORT_DIRECTORY":/report \
     owasp/dependency-check \
     --scan /src \
-    --format "ALL" \
+    --format "HTML" \
     --project "My OWASP Dependency Check Project" \
     --out /report
     # Use suppression like this: (/src == $pwd)
