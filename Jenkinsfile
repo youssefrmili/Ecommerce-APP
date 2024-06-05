@@ -47,7 +47,7 @@ pipeline {
                                 sh 'rm -f owasp-dependency-check-front.sh || true'
                                 sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check-front.sh"'
                                 sh 'chmod +x owasp-dependency-check-front.sh'
-                                sh "bash owasp-dependency-check-front.sh"
+                                sh "./owasp-dependency-check-front.sh"
                                 sh "sudo mv /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html /var/lib/jenkins/OWASP-Dependency-Check/reports/${reportFile}"
                             }
                         }
