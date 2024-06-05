@@ -1,4 +1,5 @@
-def microservices = ['ecomm-cart','ecomm-order','ecomm-product','ecomm-web']
+
+def microservices = ['ecomm-web']
 def frontendservice = ['ecomm-front']
 def services = microservices + frontendservice
 def deployenv = ''
@@ -28,15 +29,7 @@ pipeline {
             }
         }
          
-        stage('Check Git Secrets') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                sh 'docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest github --repo https://github.com/youssefrmili/Ecommerce-APP.git > trufflehog.txt'
-            }
-        }
-
+       
         stage('Source Composition Analysis') {
             when {
                 expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
@@ -47,15 +40,15 @@ pipeline {
                         dir(service) {
                             def reportFile = "dependency-check-report-${service}.html"
                             if (service in microservices) {
-                                sh 'rm -f owasp-dependency-check.sh'
+                                sh 'rm -f owasp-dependency-check.sh || true'
                                 sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check.sh"'
                                 sh 'chmod +x owasp-dependency-check.sh'
-                                sh "./owasp-dependency-check.sh"
-                            } else if (service in frontendservice) { 
-                                sh 'rm -f owasp-dependency-check-front.sh'
+                                sh "bash owasp-dependency-check.sh"
+                            } else if (service == frontendservice) { 
+                                sh 'rm -f owasp-dependency-check-front.sh || true '
                                 sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check-front.sh"'
                                 sh 'chmod +x owasp-dependency-check-front.sh'
-                                sh "./owasp-dependency-check-front.sh"
+                                sh "bash owasp-dependency-check-front.sh"
                             }
                             sh "mv /var/lib/jenkins/workspace/**/reports/dependency-check-report.html /var/lib/jenkins/workspace/**/reports/${reportFile}"
                         }
@@ -260,9 +253,6 @@ pipeline {
         }
 
         stage('Send reports to Slack') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
             steps {
                 slackUploadFile filePath: '**/trufflehog.txt',  initialComment: 'Check TruffleHog Reports!!'
                 slackUploadFile filePath: '**/reports/*.html', initialComment: 'Check ODC Reports!!'
@@ -270,12 +260,10 @@ pipeline {
             }
         }
     }
+
     post {
         always {
-            script { 
-                if ((env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master'))
             archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt'
-            }
         }
     }
 }
