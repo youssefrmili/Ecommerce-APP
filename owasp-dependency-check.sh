@@ -18,7 +18,7 @@ docker run --rm \
     --volume "`pwd`":/src \
     --volume "$DATA_DIRECTORY":/usr/share/dependency-check/data \
     --volume "$REPORT_DIRECTORY":/report \
-    owasp/dependency-check \
+    owasp/dependency-check:latest \
     --scan /src \
     --format "HTML" \
     --project "My OWASP Dependency Check Project" \
