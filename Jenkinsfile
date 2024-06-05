@@ -44,8 +44,7 @@ pipeline {
                                 sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check.sh"'
                                 sh 'chmod +x owasp-dependency-check.sh'
                                 sh "bash owasp-dependency-check.sh"
-                                sh "sudo cp /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html /var/lib/jenkins/workspace/**/${reportFile}"
-                                sh "sudo rm /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html"
+                                sh "sudo mv /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html /var/lib/jenkins/workspace//OWASP-Dependency-Check/reports/${reportFile}"
                             } else if (service == frontendservice) { 
                                 sh 'rm -f owasp-dependency-check-front.sh || true '
                                 sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check-front.sh"'
@@ -58,6 +57,12 @@ pipeline {
             }
         }
 
+        stage('Send reports to Slack') {
+            steps {
+                slackUploadFile filePath: '/var/lib/jenkins/OWASP-Dependency-Check/reports/*.html', initialComment: 'Check ODC Reports!!'
+                }
+            }
+      
         stage('Build') {
             when {
                 expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
