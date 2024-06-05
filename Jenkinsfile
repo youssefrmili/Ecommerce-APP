@@ -1,4 +1,5 @@
-def microservices = ['ecomm-web']
+
+def microservices = ['ecomm-cart','ecomm-order','ecomm-product','ecomm-web']
 def frontendservice = ['ecomm-front']
 def services = microservices + frontendservice
 def deployenv = ''
@@ -27,6 +28,15 @@ pipeline {
                 ])
             }
         }
+         
+        stage('Check Git Secrets') {
+            when {
+                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
+            }
+            steps {
+                sh 'docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest github --repo https://github.com/youssefrmili/Ecommerce-APP.git > trufflehog.txt'
+            }
+        }
 
         stage('Source Composition Analysis') {
             when {
@@ -38,27 +48,20 @@ pipeline {
                         dir(service) {
                             def reportFile = "dependency-check-report-${service}.html"
                             if (service in microservices) {
-                                sh 'rm -f owasp-dependency-check.sh || true'
+                                sh 'rm -f owasp-dependency-check.sh'
                                 sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check.sh"'
                                 sh 'chmod +x owasp-dependency-check.sh'
                                 sh "./owasp-dependency-check.sh"
-                                sh "sudo mv /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html /var/lib/jenkins/workspace/**/${reportFile}"
-                            } else if (service in frontendservice) {
-                                sh 'rm -f owasp-dependency-check-front.sh || true'
+                            } else if (service in frontendservice) { 
+                                sh 'rm -f owasp-dependency-check-front.sh'
                                 sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check-front.sh"'
                                 sh 'chmod +x owasp-dependency-check-front.sh'
                                 sh "./owasp-dependency-check-front.sh"
-                                sh "sudo mv /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html /var/lib/jenkins/OWASP-Dependency-Check/reports/${reportFile}"
                             }
+                            sh "mv /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html /var/lib/jenkins/OWASP-Dependency-Check/reports/reports/${reportFile}"
                         }
                     }
                 }
-            }
-        }
-
-        stage('Send reports to Slack') {
-            steps {
-                slackUploadFile filePath: '/var/lib/jenkins/OWASP-Dependency-Check/reports/*.html', initialComment: 'Check ODC Reports!!'
             }
         }
 
@@ -100,8 +103,8 @@ pipeline {
                 script {
                     for (def service in microservices) {
                         dir(service) {
-                            withSonarQubeEnv('sonarqube') {
-                                sh 'mvn clean package sonar:sonar'
+                                withSonarQubeEnv('sonarqube') {
+                                    sh 'mvn clean package sonar:sonar'
                             }
                         }
                     }
@@ -152,11 +155,11 @@ pipeline {
                     for (def service in services) {
                         def trivyReportFile = "trivy-${service}.txt"
                         if (env.BRANCH_NAME == 'test') {
-                            sh "sudo trivy --timeout 15m image ${DOCKERHUB_USERNAME}/${service}_test:latest > ${trivyReportFile}"
+                            sh "sudo trivy --timeout 15m image ${DOCKERHUB_USERNAME}/${service}_test:latest > ${trivyReportFile}"                        
                         } else if (env.BRANCH_NAME == 'master') {
-                            sh "sudo trivy --timeout 15m image ${DOCKERHUB_USERNAME}/${service}_prod:latest > ${trivyReportFile}"
+                            sh "sudo trivy --timeout 15m image ${DOCKERHUB_USERNAME}/${service}_prod:latest > ${trivyReportFile}"                        
                         } else if (env.BRANCH_NAME == 'dev') {
-                            sh "sudo trivy --timeout 15m image ${DOCKERHUB_USERNAME}/${service}_dev:latest > ${trivyReportFile}"
+                            sh "sudo trivy --timeout 15m image ${DOCKERHUB_USERNAME}/${service}_dev:latest > ${trivyReportFile}"                        
                         }
                     }
                 }
@@ -249,21 +252,30 @@ pipeline {
                     script {
                         sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/namespace.yml"
                         sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/infrastructure/"
-                        for (def service in services) {
+                        for (service in services) {
                             sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/microservices/${service}.yml"
                         }
                     }
                 }
             }
         }
-    }
 
+        stage('Send reports to Slack') {
+            when {
+                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
+            }
+            steps {
+                slackUploadFile filePath: '**/trufflehog.txt',  initialComment: 'Check TruffleHog Reports!!'
+                slackUploadFile filePath: '**/reports/*.html', initialComment: 'Check ODC Reports!!'
+                slackUploadFile filePath: '**/trivy-*.txt', initialComment: 'Check Trivy Reports!!'
+            }
+        }
+    }
     post {
         always {
-            script {
-                if ((env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master')) {
-                    archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt'
-                }
+            script { 
+                if ((env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master'))
+            archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt'
             }
         }
     }
