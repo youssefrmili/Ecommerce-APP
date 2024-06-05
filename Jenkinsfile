@@ -1,4 +1,3 @@
-
 def microservices = ['ecomm-web']
 def frontendservice = ['ecomm-front']
 def services = microservices + frontendservice
@@ -28,8 +27,7 @@ pipeline {
                 ])
             }
         }
-         
-       
+
         stage('Source Composition Analysis') {
             when {
                 expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
@@ -44,9 +42,9 @@ pipeline {
                                 sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check.sh"'
                                 sh 'chmod +x owasp-dependency-check.sh'
                                 sh "bash owasp-dependency-check.sh"
-                                sh "sudo mv /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html /var/lib/jenkins/workspace//OWASP-Dependency-Check/reports/${reportFile}"
-                            } else if (service == frontendservice) { 
-                                sh 'rm -f owasp-dependency-check-front.sh || true '
+                                sh "sudo mv /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html /var/lib/jenkins/workspace/OWASP-Dependency-Check/reports/${reportFile}"
+                            } else if (service == frontendservice) {
+                                sh 'rm -f owasp-dependency-check-front.sh || true'
                                 sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check-front.sh"'
                                 sh 'chmod +x owasp-dependency-check-front.sh'
                                 sh "bash owasp-dependency-check-front.sh"
@@ -60,9 +58,9 @@ pipeline {
         stage('Send reports to Slack') {
             steps {
                 slackUploadFile filePath: '/var/lib/jenkins/OWASP-Dependency-Check/reports/*.html', initialComment: 'Check ODC Reports!!'
-                }
             }
-       }
+        }
+
         stage('Build') {
             when {
                 expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
@@ -101,8 +99,8 @@ pipeline {
                 script {
                     for (def service in microservices) {
                         dir(service) {
-                                withSonarQubeEnv('sonarqube') {
-                                    sh 'mvn clean package sonar:sonar'
+                            withSonarQubeEnv('sonarqube') {
+                                sh 'mvn clean package sonar:sonar'
                             }
                         }
                     }
@@ -153,11 +151,11 @@ pipeline {
                     for (def service in services) {
                         def trivyReportFile = "trivy-${service}.txt"
                         if (env.BRANCH_NAME == 'test') {
-                            sh "sudo trivy --timeout 15m image ${DOCKERHUB_USERNAME}/${service}_test:latest > ${trivyReportFile}"                        
+                            sh "sudo trivy --timeout 15m image ${DOCKERHUB_USERNAME}/${service}_test:latest > ${trivyReportFile}"
                         } else if (env.BRANCH_NAME == 'master') {
-                            sh "sudo trivy --timeout 15m image ${DOCKERHUB_USERNAME}/${service}_prod:latest > ${trivyReportFile}"                        
+                            sh "sudo trivy --timeout 15m image ${DOCKERHUB_USERNAME}/${service}_prod:latest > ${trivyReportFile}"
                         } else if (env.BRANCH_NAME == 'dev') {
-                            sh "sudo trivy --timeout 15m image ${DOCKERHUB_USERNAME}/${service}_dev:latest > ${trivyReportFile}"                        
+                            sh "sudo trivy --timeout 15m image ${DOCKERHUB_USERNAME}/${service}_dev:latest > ${trivyReportFile}"
                         }
                     }
                 }
@@ -250,20 +248,21 @@ pipeline {
                     script {
                         sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/namespace.yml"
                         sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/infrastructure/"
-                        for (service in services) {
+                        for (def service in services) {
                             sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/microservices/${service}.yml"
                         }
                     }
                 }
             }
         }
+    }
 
- 
     post {
         always {
-            script { 
-                if ((env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master'))
-            archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt'
+            script {
+                if ((env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master')) {
+                    archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt'
+                }
             }
         }
     }
