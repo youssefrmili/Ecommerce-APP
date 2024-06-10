@@ -36,12 +36,24 @@ pipeline {
                 script {
                     for (def service in services) {
                         dir(service) {
-                            dependencyCheck additionalArguments: '--format HTML', odcInstallation: 'dependency-Check'
+                            def reportFile = "dependency-check-report-${service}.html"
+                            if (service in microservices) {
+                                sh 'rm -f owasp-dependency-check.sh'
+                                sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check.sh"'
+                                sh 'chmod +x owasp-dependency-check.sh'
+                                sh "./owasp-dependency-check.sh"
+                            } else if (service == frontendservice) { 
+                                sh 'rm -f owasp-dependency-check-front.sh'
+                                sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check-front.sh"'
+                                sh 'chmod +x owasp-dependency-check-front.sh'
+                                sh "./owasp-dependency-check-front.sh"
+                            }
+                            sh "mv /var/lib/jenkins/workspace/**/reports/dependency-check-report.html /var/lib/jenkins/workspace/**/reports/${reportFile}"
                         }
                     }
                 }
             }
-        } // Missing closing brace for 'Source Composition Analysis' stage added here
+        }
 
         stage('Build') {
             when {
