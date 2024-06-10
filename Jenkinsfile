@@ -194,6 +194,7 @@ pipeline {
             steps {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
                     sh "ssh $MASTER_NODE 'kube-bench > kubebench_CIS_${env.BRANCH_NAME}.txt'"
+                    sh "ssh $MASTER_NODE cat kubebench_CIS_${env.BRANCH_NAME}.txt"
                 }
             }
         }
@@ -205,6 +206,7 @@ pipeline {
             steps {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
                     sh "ssh $MASTER_NODE 'kubescape scan framework mitre > kubescape_mitre_${env.BRANCH_NAME}.txt'"
+                    sh "ssh $MASTER_NODE cat kubescape_mitre_${env.BRANCH_NAME}.txt"
                 }
             }
         }
@@ -236,7 +238,9 @@ pipeline {
                         sh "ssh $MASTER_NODE rm -f kubescape_infrastructure_${deployenv}.txt"
                         sh "ssh $MASTER_NODE rm -f kubescape_microservices_${deployenv}.txt"
                         sh "ssh $MASTER_NODE 'kubescape scan ${deployenv}_manifests/infrastructure/*.yml > kubescape_infrastructure_${deployenv}.txt'"
+                        sh "ssh $MASTER_NODE cat kubescape_infrastructure_${deployenv}.txt"
                         sh "ssh $MASTER_NODE 'kubescape scan ${deployenv}_manifests/microservices/*.yml > kubescape_microservices_${deployenv}.txt'"
+                        sh "ssh $MASTER_NODE cat kubescape_microservices_${deployenv}.txt"
                     }
                 }
             }
