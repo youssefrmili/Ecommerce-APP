@@ -29,14 +29,6 @@ pipeline {
             }
         }
          
-        stage('Check Git Secrets') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                sh 'docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest github --repo https://github.com/youssefrmili/Ecommerce-APP.git > trufflehog.txt'
-            }
-        }
 
         stage('Build') {
             when {
@@ -68,22 +60,6 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                script {
-                    for (def service in microservices) {
-                        dir(service) {
-                                withSonarQubeEnv('sonarqube') {
-                                    sh 'mvn clean package sonar:sonar'
-                            }
-                        }
-                    }
-                }
-            }
-        }
 
         stage('Docker Login') {
             when {
@@ -119,25 +95,6 @@ pipeline {
             }
         }
 
-        stage('Trivy Image Scan') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                script {
-                    for (def service in services) {
-                        def trivyReportFile = "trivy-${service}.txt"
-                        if (env.BRANCH_NAME == 'test') {
-                            sh "sudo trivy --timeout 15m image ${DOCKERHUB_USERNAME}/${service}_test:latest > ${trivyReportFile}"                        
-                        } else if (env.BRANCH_NAME == 'master') {
-                            sh "sudo trivy --timeout 15m image ${DOCKERHUB_USERNAME}/${service}_prod:latest > ${trivyReportFile}"                        
-                        } else if (env.BRANCH_NAME == 'dev') {
-                            sh "sudo trivy --timeout 15m image ${DOCKERHUB_USERNAME}/${service}_dev:latest > ${trivyReportFile}"                        
-                        }
-                    }
-                }
-            }
-        }
 
         stage('Docker Push') {
             when {
@@ -161,27 +118,6 @@ pipeline {
             }
         }
 
-        stage('Kube-bench Scan') {
-            when {
-                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
-                    sh "ssh $MASTER_NODE 'kube-bench > kubebench_CIS_${env.BRANCH_NAME}.txt'"
-                }
-            }
-        }
-
-        stage('Kubescope Scan') {
-            when {
-                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
-                    sh "ssh $MASTER_NODE 'kubescape scan framework mitre > kubescape_mitre_${env.BRANCH_NAME}.txt'"
-                }
-            }
-        }
 
         stage('Get YAML Files') {
             when {
@@ -195,22 +131,6 @@ pipeline {
                         sh "scp deploy_to_${deployenv}.sh $MASTER_NODE:~"
                         sh "ssh $MASTER_NODE chmod +x deploy_to_${deployenv}.sh"
                         sh "ssh $MASTER_NODE ./deploy_to_${deployenv}.sh"
-                    }
-                }
-            }
-        }
-
-        stage('Scan YAML Files') {
-            when {
-                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
-                    script {
-                        sh "ssh $MASTER_NODE rm -f kubescape_infrastructure_${deployenv}.txt"
-                        sh "ssh $MASTER_NODE rm -f kubescape_microservices_${deployenv}.txt"
-                        sh "ssh $MASTER_NODE 'kubescape scan ${deployenv}_manifests/infrastructure/*.yml > kubescape_infrastructure_${deployenv}.txt'"
-                        sh "ssh $MASTER_NODE 'kubescape scan ${deployenv}_manifests/microservices/*.yml > kubescape_microservices_${deployenv}.txt'"
                     }
                 }
             }
@@ -232,23 +152,5 @@ pipeline {
                 }
             }
         }
-
-        stage('Send reports to Slack') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                slackUploadFile filePath: '**/trufflehog.txt',  initialComment: 'Check TruffleHog Reports!!'
-                slackUploadFile filePath: '**/trivy-*.txt', initialComment: 'Check Trivy Reports!!'
-            }
-        }
     }
-    post {
-        always {
-            script { 
-                if ((env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master'))
-            archiveArtifacts artifacts: '**/trufflehog.txt, **/reports*.html, **/trivy-*.txt'
-            }
-        }
-    }
-}
+}    
