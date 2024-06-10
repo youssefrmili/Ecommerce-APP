@@ -199,7 +199,7 @@ pipeline {
             }
         }
 
-        stage('Kubescope Scan') {
+        stage('Kubescape Scan') {
             when {
                 expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
             }
