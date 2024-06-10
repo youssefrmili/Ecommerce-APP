@@ -16,11 +16,10 @@ fi
 # Make sure we are using the latest version
 
 docker run --rm \
-    --user 129:137 \
     --volume $(pwd):/ecomm-front \
     --volume "$DATA_DIRECTORY":/usr/share/dependency-check/data \
     --volume "$REPORT_DIRECTORY":/report \
-    owasp/dependency-check:latest \
+    owasp/dependency-check \
     --scan /ecomm-front/package-lock.json \
     --exclude "dependency-check-bin" \
     --format "HTML" \
