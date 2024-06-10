@@ -27,8 +27,8 @@ pipeline {
                 ])
             }
         }
-        
-         stage('Source Composition Analysis') {
+
+        stage('Source Composition Analysis') {
             when {
                 expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
             }
@@ -41,6 +41,7 @@ pipeline {
                     }
                 }
             }
+        } // Missing closing brace for 'Source Composition Analysis' stage added here
 
         stage('Build') {
             when {
@@ -247,16 +248,16 @@ pipeline {
             }
             steps {
                 slackUploadFile filePath: '**/trufflehog.txt',  initialComment: 'Check TruffleHog Reports!!'
-                slackUploadFile filePath: '**/reports/*.html', initialComment: 'Check ODC Reports!!'
                 slackUploadFile filePath: '**/trivy-*.txt', initialComment: 'Check Trivy Reports!!'
             }
         }
     }
     post {
         always {
-            script { 
-                if ((env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master'))
-            archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt'
+            script {
+                if ((env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master')) {
+                    archiveArtifacts artifacts: '**/trufflehog.txt, **/trivy-*.txt'
+                }
             }
         }
     }
