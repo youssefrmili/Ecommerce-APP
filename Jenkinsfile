@@ -227,32 +227,32 @@ pipeline {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
                     script {
                         sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/namespace.yml"
-                        sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/infrastructure"
-                        sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/microservices"
+                        sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/infrastructure/"
+                        for (service in services) {
+                            sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/microservices/${service}.yml"
+                        }
                     }
                 }
             }
         }
-    }
-}
+
         stage('Send reports to Slack') {
             when {
                 expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
             }
             steps {
-                slackUploadFile filePath: '**/trufflehog.txt', initialComment: 'Check TruffleHog Reports!!'
+                slackUploadFile filePath: '**/trufflehog.txt',  initialComment: 'Check TruffleHog Reports!!'
                 slackUploadFile filePath: '**/reports/*.html', initialComment: 'Check ODC Reports!!'
                 slackUploadFile filePath: '**/trivy-*.txt', initialComment: 'Check Trivy Reports!!'
             }
         }
     }
-
     post {
         always {
-            script {
-                if ((env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master')) {
-                    archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt'
-                }
+            script { 
+                if ((env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master'))
+            archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt'
             }
         }
     }
+}
