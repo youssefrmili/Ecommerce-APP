@@ -1,4 +1,4 @@
-def microservices = ['ecomm-cart','ecomm-order','ecomm-product','ecomm-web']
+def microservices = ['ecomm-cart', 'ecomm-order', 'ecomm-product', 'ecomm-web']
 def frontendservice = ['ecomm-front']
 def services = microservices + frontendservice
 def deployenv = ''
@@ -27,7 +27,7 @@ pipeline {
                 ])
             }
         }
-         
+        
         stage('Source Composition Analysis') {
             when {
                 expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
@@ -35,6 +35,7 @@ pipeline {
             steps {
                  dependencyCheck additionalArguments: '--format HTML', odcInstallation: 'DP-Check'
             }
+        }
 
         stage('Build') {
             when {
@@ -226,33 +227,33 @@ pipeline {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
                     script {
                         sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/namespace.yml"
-                        sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/infrastructure/"
-                        for (service in services) {
-                            sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/microservices/${service}.yml"
-                        }
+                        sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/infrastructure"
+                        sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/microservices"
                     }
                 }
             }
         }
-
+    }
+}
         stage('Send reports to Slack') {
             when {
                 expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
             }
             steps {
-                slackUploadFile filePath: '**/trufflehog.txt',  initialComment: 'Check TruffleHog Reports!!'
+                slackUploadFile filePath: '**/trufflehog.txt', initialComment: 'Check TruffleHog Reports!!'
                 slackUploadFile filePath: '**/reports/*.html', initialComment: 'Check ODC Reports!!'
                 slackUploadFile filePath: '**/trivy-*.txt', initialComment: 'Check Trivy Reports!!'
             }
         }
     }
+
     post {
         always {
-            script { 
-                if ((env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master'))
-            archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt'
+            script {
+                if ((env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master')) {
+                    archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt'
+                }
             }
         }
     }
-}
 }
