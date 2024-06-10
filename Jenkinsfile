@@ -33,27 +33,8 @@ pipeline {
                 expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
             }
             steps {
-                script {
-                    for (def service in services) {
-                        dir(service) {
-                            def reportFile = "dependency-check-report-${service}.html"
-                            if (service in microservices) {
-                                sh 'rm -f owasp-dependency-check.sh'
-                                sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check.sh"'
-                                sh 'chmod +x owasp-dependency-check.sh'
-                                sh "./owasp-dependency-check.sh"
-                            } else if (service == frontendservice) { 
-                                sh 'rm -f owasp-dependency-check-front.sh'
-                                sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check-front.sh"'
-                                sh 'chmod +x owasp-dependency-check-front.sh'
-                                sh "./owasp-dependency-check-front.sh"
-                            }
-                            sh "mv /var/lib/jenkins/workspace/**/reports/dependency-check-report.html /var/lib/jenkins/workspace/**/reports/${reportFile}"
-                        }
-                    }
-                }
+                 dependencyCheck additionalArguments: '--format HTML', odcInstallation: 'DP-Check'
             }
-        }
 
         stage('Build') {
             when {
