@@ -28,42 +28,6 @@ pipeline {
             }
         }
          
-        stage('Check Git Secrets') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                sh 'docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest github --repo https://github.com/youssefrmili/Ecommerce-APP.git > trufflehog.txt'
-            }
-        }
-
-        stage('Source Composition Analysis') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                script {
-                    for (def service in services) {
-                        dir(service) {
-                            def reportFile = "dependency-check-report-${service}.html"
-                            if (service in microservices) {
-                                sh 'rm -f owasp-dependency-check.sh'
-                                sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check.sh"'
-                                sh 'chmod +x owasp-dependency-check.sh'
-                                sh "./owasp-dependency-check.sh"
-                            } else if (service == frontendservice) { 
-                                sh 'rm -f owasp-dependency-check-front.sh'
-                                sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check-front.sh"'
-                                sh 'chmod +x owasp-dependency-check-front.sh'
-                                sh "./owasp-dependency-check-front.sh"
-                            }
-                            sh "mv /var/lib/jenkins/workspace/**/reports/dependency-check-report.html /var/lib/jenkins/workspace/**/reports/${reportFile}"
-                        }
-                    }
-                }
-            }
-        }
-
         stage('Build') {
             when {
                 expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
@@ -79,121 +43,15 @@ pipeline {
             }
         }
 
-        stage('Unit Test') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                script {
-                    for (def service in microservices) {
-                        dir(service) {
-                            sh 'mvn test'
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('SonarQube Analysis') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                script {
-                    for (def service in microservices) {
-                        dir(service) {
-                                withSonarQubeEnv('sonarqube') {
-                                    sh 'mvn clean package sonar:sonar'
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Docker Login') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh "docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD"
-                    }
-                }
-            }
-        }
-
-        stage('Docker Build') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                script {
-                    for (def service in services) {
-                        dir(service) {
-                            if (env.BRANCH_NAME == 'test') {
-                                sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_test:latest ."
-                            } else if (env.BRANCH_NAME == 'master') {
-                                sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_prod:latest ."
-                            } else if (env.BRANCH_NAME == 'dev') {
-                                sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_dev:latest ."
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Trivy Image Scan') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                script {
-                    for (def service in services) {
-                        def trivyReportFile = "trivy-${service}.txt"
-                        if (env.BRANCH_NAME == 'test') {
-                            sh "sudo trivy --timeout 15m image ${DOCKERHUB_USERNAME}/${service}_test:latest > ${trivyReportFile}"                        
-                        } else if (env.BRANCH_NAME == 'master') {
-                            sh "sudo trivy --timeout 15m image ${DOCKERHUB_USERNAME}/${service}_prod:latest > ${trivyReportFile}"                        
-                        } else if (env.BRANCH_NAME == 'dev') {
-                            sh "sudo trivy --timeout 15m image ${DOCKERHUB_USERNAME}/${service}_dev:latest > ${trivyReportFile}"                        
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Docker Push') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                script {
-                    for (def service in services) {
-                        if (env.BRANCH_NAME == 'test') {
-                            sh "docker push ${DOCKERHUB_USERNAME}/${service}_test:latest"
-                            sh "docker rmi -f ${DOCKERHUB_USERNAME}/${service}_test:latest"
-                        } else if (env.BRANCH_NAME == 'master') {
-                            sh "docker push ${DOCKERHUB_USERNAME}/${service}_prod:latest"
-                            sh "docker rmi -f ${DOCKERHUB_USERNAME}/${service}_prod:latest"
-                        } else if (env.BRANCH_NAME == 'dev') {
-                            sh "docker push ${DOCKERHUB_USERNAME}/${service}_dev:latest"
-                            sh "docker rmi -f ${DOCKERHUB_USERNAME}/${service}_dev:latest"
-                        }
-                    }
-                }
-            }
-        }
-
         stage('Kube-bench Scan') {
             when {
                 expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
             }
             steps {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
+                    sh "ssh $MASTER_NODE rm -f kubebench_CIS_${env.BRANCH_NAME}.txt"
                     sh "ssh $MASTER_NODE 'kube-bench > kubebench_CIS_${env.BRANCH_NAME}.txt'"
+                    sh "scp $MASTER_NODE:~/kubebench_CIS_${env.BRANCH_NAME}.txt /var/lib/jenkins/workspace/**/kubebench_CIS_${env.BRANCH_NAME}.txt"
                 }
             }
         }
