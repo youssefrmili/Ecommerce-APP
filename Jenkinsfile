@@ -27,6 +27,14 @@ pipeline {
                 ])
             }
         }
+        stage('Check Git Secrets') {
+            when {
+                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
+            }
+            steps {
+                sh 'docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest github --repo https://github.com/youssefrmili/Ecommerce-APP.git > trufflehog.txt'
+            }
+        }
 
         stage('Source Composition Analysis') {
             when {
@@ -42,13 +50,8 @@ pipeline {
                                 sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check.sh"'
                                 sh 'chmod +x owasp-dependency-check.sh'
                                 sh "./owasp-dependency-check.sh"
-                            } else if (service == frontendservice) { 
-                                sh 'rm -f owasp-dependency-check-front.sh'
-                                sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check-front.sh"'
-                                sh 'chmod +x owasp-dependency-check-front.sh'
-                                sh "./owasp-dependency-check-front.sh"
-                            }
-                            sh "mv /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html /var/lib/jenkins/OWASP-Dependency-Check/reports/${reportFile}"
+                                sh "mv /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html /var/lib/jenkins/OWASP-Dependency-Check/reports/${reportFile}"
+                            } 
                         }
                     }
                 }
