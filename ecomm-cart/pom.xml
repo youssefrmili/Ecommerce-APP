@@ -62,6 +62,7 @@
             <version>42.5.1</version>
             <scope>runtime</scope>
         </dependency>
+        
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -73,6 +74,7 @@
             <artifactId>hibernate-types-60</artifactId>
             <version>2.21.1</version>
         </dependency>
+        
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
@@ -86,6 +88,28 @@
             <type>pom</type>
             <scope>import</scope>
         </dependency>
+
+        <!-- Updated dependencies to fix vulnerabilities -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.4.12</version> <!-- Fixed version -->
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>1.4.12</version> <!-- Fixed version -->
+        </dependency>
+        <dependency>
+            <groupId>commons-fileupload</groupId>
+            <artifactId>commons-fileupload</artifactId>
+            <version>1.5</version> <!-- Fixed version -->
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-core</artifactId>
+            <version>10.1.16</version> <!-- Fixed version -->
+        </dependency>
     </dependencies>
 
     <build>
@@ -96,5 +120,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
