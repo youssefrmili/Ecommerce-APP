@@ -1,12 +1,13 @@
-def microservices = ['ecomm-web']
-def frontEndService = 'ecomm-ui'
-def services = microservices + frontEndService
+def microservices = ['ecomm-cart', 'ecomm-order', 'ecomm-product', 'ecomm-web']
+def frontendservice = ['ecomm-front']
+def services = microservices + frontendservice
 def deployenv = ''
-    if (env.BRANCH_NAME == 'test') {
+if (env.BRANCH_NAME == 'test') {
     deployenv = 'test'
-    } else if (env.BRANCH_NAME == 'master') {
+} else if (env.BRANCH_NAME == 'master') {
     deployenv = 'prod'
-    }
+}
+
 pipeline {
     agent any
 
@@ -26,7 +27,6 @@ pipeline {
                 ])
             }
         }
-
         stage('Check Git Secrets') {
             when {
                 expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
@@ -45,18 +45,13 @@ pipeline {
                     for (def service in services) {
                         dir(service) {
                             def reportFile = "dependency-check-report-${service}.html"
-                            if (service == frontEndService) {
-                                sh 'rm -f owasp-dependency-check-front.sh'
-                                sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check-front.sh"'
-                                sh 'chmod +x owasp-dependency-check-front.sh'
-                                sh "./owasp-dependency-check-front.sh"
-                            } else {
+                            if (service in microservices) {
                                 sh 'rm -f owasp-dependency-check.sh'
                                 sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check.sh"'
                                 sh 'chmod +x owasp-dependency-check.sh'
                                 sh "./owasp-dependency-check.sh"
-                            }
-                            sh "mv /var/lib/jenkins/workspace/**/reports/dependency-check-report.html /var/lib/jenkins/workspace/**/reports/${reportFile}"
+                                sh "mv /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html /var/lib/jenkins/OWASP-Dependency-Check/reports/${reportFile}"
+                            } 
                         }
                     }
                 }
@@ -193,17 +188,7 @@ pipeline {
             steps {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
                     sh "ssh $MASTER_NODE 'kube-bench > kubebench_CIS_${env.BRANCH_NAME}.txt'"
-                }
-            }
-        }
-
-        stage('Kubescope Scan') {
-            when {
-                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
-                    sh "ssh $MASTER_NODE 'kubescape scan framework mitre > kubescape_mitre_${env.BRANCH_NAME}.txt'"
+                    sh "ssh $MASTER_NODE cat kubebench_CIS_${env.BRANCH_NAME}.txt"
                 }
             }
         }
@@ -234,8 +219,10 @@ pipeline {
                     script {
                         sh "ssh $MASTER_NODE rm -f kubescape_infrastructure_${deployenv}.txt"
                         sh "ssh $MASTER_NODE rm -f kubescape_microservices_${deployenv}.txt"
-                        sh "ssh $MASTER_NODE 'kubescape scan ${deployenv}_manifests/infrastructure/*.yml > kubescape_infrastructure_${deployenv}.txt'"
-                        sh "ssh $MASTER_NODE 'kubescape scan ${deployenv}_manifests/microservices/*.yml > kubescape_microservices_${deployenv}.txt'"
+                        sh "ssh $MASTER_NODE 'kubescape scan ${deployenv}_manifests/infrastructure/*.yml -v > kubescape_infrastructure_${deployenv}.txt'"
+                        sh "ssh $MASTER_NODE cat kubescape_infrastructure_${deployenv}.txt"
+                        sh "ssh $MASTER_NODE 'kubescape scan ${deployenv}_manifests/microservices/*.yml -v > kubescape_microservices_${deployenv}.txt'"
+                        sh "ssh $MASTER_NODE cat kubescape_microservices_${deployenv}.txt"
                     }
                 }
             }
@@ -257,19 +244,24 @@ pipeline {
                 }
             }
         }
-    }
 
+        stage('Send reports to Slack') {
+            when {
+                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
+            }
+            steps {
+                slackUploadFile filePath: '**/trufflehog.txt',  initialComment: 'Check TruffleHog Reports!!'
+                slackUploadFile filePath: '**/trivy-*.txt', initialComment: 'Check Trivy Reports!!'
+            }
+        }
+    }
     post {
         always {
-            archiveArtifacts artifacts: '**/trufflehog.txt, **/reports/*.html, **/trivy-*.txt, **/kubescape-*.txt'
-            emailext attachLog: true,
-                subject: "'${currentBuild.result}'",
-                body: "Project: ${env.JOB_NAME}<br/>" +
-                      "Build Number: ${env.BUILD_NUMBER}<br/>" +
-                      "URL: ${env.BUILD_URL}<br/>" +
-                      "Result: ${currentBuild.result}",
-                to: 'yousseff.rmili@gmail.com',  // Change to your email address
-                attachmentsPattern: '**/trivy-*.txt, **/reports/*.html, **/trufflehog.txt, **/kubescape-*.txt'
+            script {
+                if ((env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master')) {
+                    archiveArtifacts artifacts: '**/trufflehog.txt, **/trivy-*.txt'
+                }
+            }
         }
     }
 }
