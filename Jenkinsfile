@@ -1,5 +1,4 @@
 def microservices = ['ecomm-gateway']
-def services = microservices + frontendservice
 def deployenv = ''
 if (env.BRANCH_NAME == 'test') {
     deployenv = 'test'
@@ -77,7 +76,7 @@ pipeline {
             }
             steps {
                 script {
-                    for (def service in services) {
+                    for (def service in microservices) {
                         dir(service) {
                             if (env.BRANCH_NAME == 'test') {
                                 sh "docker build -t ${DOCKERHUB_USERNAME}/${service}_test:latest ."
@@ -98,7 +97,7 @@ pipeline {
             }
             steps {
                 script {
-                    for (def service in services) {
+                    for (def service in microservices) {
                         if (env.BRANCH_NAME == 'test') {
                             sh "docker push ${DOCKERHUB_USERNAME}/${service}_test:latest"
                             sh "docker rmi -f ${DOCKERHUB_USERNAME}/${service}_test:latest"
