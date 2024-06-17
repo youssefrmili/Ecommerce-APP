@@ -14,7 +14,6 @@ curl -o $TARGET_DIR/infrastructure/elasticsearch-volumes.yml https://raw.githubu
 curl -o $TARGET_DIR/infrastructure/elasticsearch.yml https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/test_manifests/infrastructure/elasticsearch.yml
 curl -o $TARGET_DIR/infrastructure/postgres-volumes.yml https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/test_manifests/infrastructure/postgres-volumes.yml
 curl -o $TARGET_DIR/infrastructure/postgres.yml https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/test_manifests/infrastructure/postgres.yml
-curl -o $TARGET_DIR/infrastructure/ecomm-gateway.yml https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/test_manifests/infrastructure/ecomm-gateway.yml
 
 curl -o $TARGET_DIR/microservices/ecomm-cart.yml https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/test_manifests/microservices/ecomm-cart.yml
 curl -o $TARGET_DIR/microservices/ecomm-order.yml https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/test_manifests/microservices/ecomm-order.yml
