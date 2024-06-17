@@ -114,5 +114,39 @@ pipeline {
                 }
             }
         }
+    
+        stage('Get YAML Files') {
+            when {
+                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
+            }
+            steps {
+                sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
+                    script {
+                        sh "rm -f deploy_to_${deployenv}.sh"
+                        sh "wget \"https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/deploy_to_${deployenv}.sh\""
+                        sh "scp deploy_to_${deployenv}.sh $MASTER_NODE:~"
+                        sh "ssh $MASTER_NODE chmod +x deploy_to_${deployenv}.sh"
+                        sh "ssh $MASTER_NODE ./deploy_to_${deployenv}.sh"
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            when {
+                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
+            }
+            steps {
+                sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
+                    script {
+                        sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/namespace.yml"
+                        sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/infrastructure/"
+                        for (service in services) {
+                            sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/microservices/${service}.yml"
+                        }
+                    }
+                }
+            }
+        }
     }
 }
