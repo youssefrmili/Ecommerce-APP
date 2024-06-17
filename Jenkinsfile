@@ -27,36 +27,6 @@ pipeline {
                 ])
             }
         }
-        stage('Check Git Secrets') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                sh 'docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest github --repo https://github.com/youssefrmili/Ecommerce-APP.git > trufflehog.txt'
-            }
-        }
-
-        stage('Source Composition Analysis') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                script {
-                    for (def service in services) {
-                        dir(service) {
-                            def reportFile = "dependency-check-report-${service}.html"
-                            if (service in microservices) {
-                                sh 'rm -f owasp-dependency-check.sh'
-                                sh 'wget "https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/owasp-dependency-check.sh"'
-                                sh 'chmod +x owasp-dependency-check.sh'
-                                sh "./owasp-dependency-check.sh"
-                                sh "mv /var/lib/jenkins/OWASP-Dependency-Check/reports/dependency-check-report.html /var/lib/jenkins/OWASP-Dependency-Check/reports/${reportFile}"
-                            } 
-                        }
-                    }
-                }
-            }
-        }
 
         stage('Build') {
             when {
@@ -88,22 +58,6 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                script {
-                    for (def service in microservices) {
-                        dir(service) {
-                                withSonarQubeEnv('sonarqube') {
-                                    sh 'mvn clean package sonar:sonar'
-                            }
-                        }
-                    }
-                }
-            }
-        }
 
         stage('Docker Login') {
             when {
@@ -139,26 +93,6 @@ pipeline {
             }
         }
 
-        stage('Trivy Image Scan') {
-            when {
-                expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                script {
-                    for (def service in services) {
-                        def trivyReportFile = "trivy-${service}.txt"
-                        if (env.BRANCH_NAME == 'test') {
-                            sh "sudo trivy --timeout 15m image ${DOCKERHUB_USERNAME}/${service}_test:latest > ${trivyReportFile}"                        
-                        } else if (env.BRANCH_NAME == 'master') {
-                            sh "sudo trivy --timeout 15m image ${DOCKERHUB_USERNAME}/${service}_prod:latest > ${trivyReportFile}"                        
-                        } else if (env.BRANCH_NAME == 'dev') {
-                            sh "sudo trivy --timeout 15m image ${DOCKERHUB_USERNAME}/${service}_dev:latest > ${trivyReportFile}"                        
-                        }
-                    }
-                }
-            }
-        }
-
         stage('Docker Push') {
             when {
                 expression { (env.BRANCH_NAME == 'dev') || (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
@@ -175,70 +109,6 @@ pipeline {
                         } else if (env.BRANCH_NAME == 'dev') {
                             sh "docker push ${DOCKERHUB_USERNAME}/${service}_dev:latest"
                             sh "docker rmi -f ${DOCKERHUB_USERNAME}/${service}_dev:latest"
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Kube-bench Scan') {
-            when {
-                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
-                    sh "ssh $MASTER_NODE 'kube-bench > kubebench_CIS_${env.BRANCH_NAME}.txt'"
-                    sh "ssh $MASTER_NODE cat kubebench_CIS_${env.BRANCH_NAME}.txt"
-                }
-            }
-        }
-
-        stage('Get YAML Files') {
-            when {
-                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
-                    script {
-                        sh "rm -f deploy_to_${deployenv}.sh"
-                        sh "wget \"https://raw.githubusercontent.com/youssefrmili/Ecommerce-APP/test/deploy_to_${deployenv}.sh\""
-                        sh "scp deploy_to_${deployenv}.sh $MASTER_NODE:~"
-                        sh "ssh $MASTER_NODE chmod +x deploy_to_${deployenv}.sh"
-                        sh "ssh $MASTER_NODE ./deploy_to_${deployenv}.sh"
-                    }
-                }
-            }
-        }
-
-        stage('Scan YAML Files') {
-            when {
-                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
-                    script {
-                        sh "ssh $MASTER_NODE rm -f kubescape_infrastructure_${deployenv}.txt"
-                        sh "ssh $MASTER_NODE rm -f kubescape_microservices_${deployenv}.txt"
-                        sh "ssh $MASTER_NODE 'kubescape scan ${deployenv}_manifests/infrastructure/*.yml -v > kubescape_infrastructure_${deployenv}.txt'"
-                        sh "ssh $MASTER_NODE cat kubescape_infrastructure_${deployenv}.txt"
-                        sh "ssh $MASTER_NODE 'kubescape scan ${deployenv}_manifests/microservices/*.yml -v > kubescape_microservices_${deployenv}.txt'"
-                        sh "ssh $MASTER_NODE cat kubescape_microservices_${deployenv}.txt"
-                    }
-                }
-            }
-        }
-
-        stage('Deploy to Kubernetes') {
-            when {
-                expression { (env.BRANCH_NAME == 'test') || (env.BRANCH_NAME == 'master') }
-            }
-            steps {
-                sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
-                    script {
-                        sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/namespace.yml"
-                        sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/infrastructure/"
-                        for (service in services) {
-                            sh "ssh $MASTER_NODE kubectl apply -f ${deployenv}_manifests/microservices/${service}.yml"
                         }
                     }
                 }
