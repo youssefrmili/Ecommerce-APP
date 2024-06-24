@@ -22,6 +22,12 @@ spec:
           envFrom:
             - configMapRef:
                 name: app-config
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_PASSWORD
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: postgres-storage
