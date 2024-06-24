@@ -45,11 +45,12 @@ spec:
         env:
         - name: ELASTIC_USERNAME
           value: "elastic"
-        - name: ELASTIC_PASSWORD
-          valueFrom:
-            configMapKeyRef:
-              name: app-config
-              key: ELASTICSEARCH_PASSWORD
+        env:
+          - name: ELASTICSEARCH_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: app-secrets
+                key: ELASTICSEARCH_PASSWORD
         - name: ES_JAVA_OPTS
           value: "-Xms512m -Xmx512m"
         - name: CLI_JAVA_OPTS
